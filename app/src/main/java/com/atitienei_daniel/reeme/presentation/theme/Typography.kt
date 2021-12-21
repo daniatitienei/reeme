@@ -1,6 +1,7 @@
 package com.atitienei_daniel.reeme.presentation.theme
 
 import androidx.compose.material.Typography
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -17,50 +18,60 @@ val ReemeTypography = Typography(
     h4 = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.W600,
-        fontSize = 30.sp
+        fontSize = 30.sp,
+        color = DarkBlue800
     ),
     h5 = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.W600,
-        fontSize = 24.sp
+        fontSize = 24.sp,
+        color = DarkBlue800
     ),
     h6 = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.W600,
-        fontSize = 20.sp
+        fontSize = 20.sp,
+        color = DarkBlue800
     ),
     subtitle1 = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.W600,
-        fontSize = 16.sp
+        fontSize = 16.sp,
+        color = DarkBlue800
     ),
     subtitle2 = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.W500,
-        fontSize = 14.sp
+        fontSize = 14.sp,
+        color = DarkBlue800
     ),
     body1 = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
+        fontSize = 16.sp,
+        color = DarkBlue800
     ),
     body2 = TextStyle(
         fontFamily = Gilroy,
-        fontSize = 14.sp
+        fontSize = 14.sp,
+        color = DarkBlue800
     ),
     button = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.W500,
-        fontSize = 14.sp
+        fontSize = 16.sp,
+        color = Color.White
     ),
     caption = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp
+        fontSize = 12.sp,
+        color = DarkBlue800
     ),
     overline = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.W500,
-        fontSize = 12.sp
+        fontSize = 12.sp,
+        color = DarkBlue800
     )
 )

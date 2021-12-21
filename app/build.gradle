@@ -48,6 +48,10 @@ android {
 }
 
 dependencies {
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.19.0"
+
+    implementation("io.coil-kt:coil-compose:1.4.0")
+    implementation("io.coil-kt:coil-svg:1.4.0")
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.0'
