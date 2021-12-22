@@ -1,5 +1,6 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.on_boarding
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,15 +13,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.ImageLoader
 import coil.compose.rememberImagePainter
 import coil.decode.SvgDecoder
 import com.atitienei_daniel.reeme.R
 import com.atitienei_daniel.reeme.presentation.theme.DarkBlue700
 import com.atitienei_daniel.reeme.presentation.theme.DarkBlue800
+import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
+@ExperimentalAnimationApi
 @Composable
-fun OnBoardingScreen() {
+fun OnBoardingScreen(
+    navController: NavController = rememberAnimatedNavController()
+) {
     val context = LocalContext.current
 
     val imageLoader = ImageLoader.Builder(context)
@@ -71,7 +79,11 @@ fun OnBoardingScreen() {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        navController.navigate(Screens.Register.route) {
+                            launchSingleTop = true
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(vertical = 10.dp)
                 ) {
@@ -81,7 +93,11 @@ fun OnBoardingScreen() {
                 Spacer(modifier = Modifier.width(15.dp))
 
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        navController.navigate(Screens.Login.route) {
+                            launchSingleTop = true
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(vertical = 10.dp)
                 ) {

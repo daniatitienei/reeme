@@ -1,4 +1,4 @@
-package com.atitienei_daniel.reeme.presentation.ui.screens.register
+package com.atitienei_daniel.reeme.presentation.ui.screens.login
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
@@ -6,14 +6,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -27,23 +24,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @Composable
-fun RegisterScreen(
-    navController: NavController = rememberNavController()
+fun LoginScreen(
+    navController: NavController = rememberAnimatedNavController()
 ) {
 
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    var name by remember {
-        mutableStateOf("")
-    }
 
     var email by remember {
         mutableStateOf("")
@@ -53,25 +46,22 @@ fun RegisterScreen(
         mutableStateOf("")
     }
 
-    var confirmPassword by remember {
-        mutableStateOf("")
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 30.dp, vertical = 30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "Hello!", style = MaterialTheme.typography.h3,
+            text = "Hello Again!",
+            style = MaterialTheme.typography.h3,
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "Welcome! We’re glad that you are here!",
+            text = "Welcome back you’ve been missed!",
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Light,
             style = MaterialTheme.typography.h6
@@ -84,17 +74,7 @@ fun RegisterScreen(
             onValueChange = { email = it },
             placeholderText = "Email",
             textFieldType = TextFieldType.EMAIL,
-            focusManager = focusManager,
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        CredentialTextField(
-            value = name,
-            onValueChange = { name = it },
-            placeholderText = "Name",
-            textFieldType = TextFieldType.NAME,
-            focusManager = focusManager,
+            focusManager = focusManager
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -105,20 +85,24 @@ fun RegisterScreen(
             placeholderText = "Password",
             textFieldType = TextFieldType.PASSWORD,
             focusManager = focusManager,
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        CredentialTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            placeholderText = "Confirm password",
-            textFieldType = TextFieldType.CONFIRM_PASSWORD,
-            focusManager = focusManager,
             keyboardController = keyboardController
         )
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentWidth(align = Alignment.End)
+                .padding(top = 5.dp)
+        ) {
+            TextButton(onClick = { /*TODO*/ }) {
+                Text(
+                    text = "Recover password",
+                    style = MaterialTheme.typography.body2
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         Button(
             onClick = { /*TODO*/ },
@@ -126,7 +110,7 @@ fun RegisterScreen(
             contentPadding = PaddingValues(vertical = 15.dp)
         ) {
             Text(
-                text = "Register",
+                text = "Login",
                 style = MaterialTheme.typography.h6,
                 color = Color.White
             )
@@ -135,20 +119,20 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         TextButton(onClick = {
-            navController.navigate(Screens.Login.route) {
+            navController.navigate(Screens.Register.route) {
                 launchSingleTop = true
 
-                popUpTo(Screens.Register.route) {
+                popUpTo(Screens.Login.route) {
                     inclusive = true
                 }
             }
         }) {
             Text(text = buildAnnotatedString {
                 withStyle(style = SpanStyle(color = MaterialTheme.colors.primary.copy(0.7f))) {
-                    append("Already a member? ")
+                    append("Not a member? ")
                 }
                 withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
-                    append("Login now")
+                    append("Register now")
                 }
             })
         }
@@ -157,9 +141,7 @@ fun RegisterScreen(
 
 private enum class TextFieldType {
     EMAIL,
-    NAME,
     PASSWORD,
-    CONFIRM_PASSWORD
 }
 
 @ExperimentalComposeUiApi
@@ -187,23 +169,15 @@ private fun CredentialTextField(
             unfocusedBorderColor = MaterialTheme.colors.primary.copy(0.3f),
         ),
         singleLine = true,
-        visualTransformation = when (textFieldType) {
-            TextFieldType.PASSWORD -> PasswordVisualTransformation()
-            TextFieldType.CONFIRM_PASSWORD -> PasswordVisualTransformation()
-            else -> VisualTransformation.None
-        },
         keyboardOptions = KeyboardOptions(
             imeAction = when (textFieldType) {
-                TextFieldType.CONFIRM_PASSWORD -> ImeAction.Done
+                TextFieldType.PASSWORD -> ImeAction.Done
                 else -> ImeAction.Next
             },
             keyboardType = when (textFieldType) {
                 TextFieldType.EMAIL -> KeyboardType.Email
                 TextFieldType.PASSWORD -> KeyboardType.Password
-                TextFieldType.CONFIRM_PASSWORD -> KeyboardType.Password
-                else -> KeyboardType.Text
             },
-            capitalization = if (textFieldType == TextFieldType.NAME) KeyboardCapitalization.Words else KeyboardCapitalization.None
         ),
         keyboardActions = KeyboardActions(
             onNext = {
@@ -217,12 +191,12 @@ private fun CredentialTextField(
     )
 }
 
-@ExperimentalComposeUiApi
 @ExperimentalAnimationApi
+@ExperimentalComposeUiApi
 @Preview(showBackground = true)
 @Composable
-private fun RegisterPreview() {
+private fun LoginPreview() {
     ReemeTheme {
-        RegisterScreen()
+        LoginScreen()
     }
 }
