@@ -26,19 +26,19 @@ fun Navigation() {
         composable(
             route = Screens.OnBoardingScreen.route,
             enterTransition = {
-                slideInVertically(initialOffsetY = { 1000 }, animationSpec = tween(500)) +
+                slideInVertically(initialOffsetY = { 1000 }, animationSpec = tween(700)) +
                         fadeIn()
             },
             popEnterTransition = {
-                slideInVertically(initialOffsetY = { 1000 }, animationSpec = tween(500)) +
+                slideInVertically(initialOffsetY = { 1000 }, animationSpec = tween(700)) +
                         fadeIn()
             },
             exitTransition = {
-                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(500)) +
+                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700)) +
                         fadeOut()
             },
             popExitTransition = {
-                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(500)) +
+                slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700)) +
                         fadeOut()
             }
         ) {

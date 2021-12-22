@@ -169,6 +169,7 @@ private fun CredentialTextField(
             unfocusedBorderColor = MaterialTheme.colors.primary.copy(0.3f),
         ),
         singleLine = true,
+        visualTransformation = if (textFieldType == TextFieldType.PASSWORD) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(
             imeAction = when (textFieldType) {
                 TextFieldType.PASSWORD -> ImeAction.Done
