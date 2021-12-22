@@ -29,6 +29,10 @@ fun OnBoardingScreen() {
         }
         .build()
 
+    /*
+    * TODO Crossfade animation to all widgets
+    * */
+
     Column(
         modifier = Modifier
             .padding(horizontal = 20.dp, vertical = 30.dp)

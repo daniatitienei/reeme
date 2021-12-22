@@ -15,6 +15,12 @@ private val Gilroy = FontFamily(
 )
 
 val ReemeTypography = Typography(
+    h3 = TextStyle(
+        fontFamily = Gilroy,
+        fontWeight = FontWeight.W600,
+        fontSize = 34.sp,
+        color = DarkBlue800
+    ),
     h4 = TextStyle(
         fontFamily = Gilroy,
         fontWeight = FontWeight.W600,

@@ -7,6 +7,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.atitienei_daniel.reeme.presentation.ui.screens.on_boarding.OnBoardingScreen
+import com.atitienei_daniel.reeme.presentation.ui.screens.register.RegisterScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 class MainActivity : ComponentActivity() {
@@ -23,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                OnBoardingScreen()
+                RegisterScreen()
             }
         }
     }
