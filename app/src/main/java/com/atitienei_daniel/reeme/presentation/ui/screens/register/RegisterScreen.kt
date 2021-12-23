@@ -121,7 +121,15 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(25.dp))
 
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                navController.navigate(Screens.Reminders.route) {
+                    launchSingleTop = true
+
+                    popUpTo(Screens.OnBoardingScreen.route) {
+                        inclusive = true
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(vertical = 15.dp)
         ) {

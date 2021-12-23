@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
@@ -14,6 +15,7 @@ import com.atitienei_daniel.reeme.presentation.ui.screens.on_boarding.OnBoarding
 import com.atitienei_daniel.reeme.presentation.ui.screens.register.RegisterScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
+@ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 class MainActivity : ComponentActivity() {
