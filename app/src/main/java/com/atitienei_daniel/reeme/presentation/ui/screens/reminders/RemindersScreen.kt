@@ -1,5 +1,6 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.reminders
 
+import androidx.compose.animation.Animatable
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -23,14 +24,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.atitienei_daniel.reeme.R
 import com.atitienei_daniel.reeme.presentation.theme.DarkBlue800
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.components.StaggeredVerticalGrid
+import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.launch
 
 @ExperimentalMaterialApi
@@ -44,6 +48,10 @@ fun RemindersScreen() {
     val scope = rememberCoroutineScope()
 
     var isDialogOpened by remember {
+        mutableStateOf(false)
+    }
+
+    var isFilterOpened by remember {
         mutableStateOf(false)
     }
 
@@ -95,13 +103,14 @@ fun RemindersScreen() {
                         TopBar(
                             title = "Reminders",
                             angle = rotationAngle,
-                            onFilterIconClick = { /*TODO*/ },
                             onMenuIconClick = { /*TODO*/ },
                             onSearchIconClick = {
                                 scope.launch {
                                     backdropState.reveal()
                                 }
-                            }
+                            },
+                            onFilterIconClick = { isFilterOpened = !isFilterOpened },
+                            isFilterOpened = isFilterOpened
                         )
                     else
                         SearchTopBar(
@@ -159,6 +168,37 @@ fun RemindersScreen() {
                         contentPadding = PaddingValues(horizontal = 15.dp, vertical = 15.dp)
                     ) {
                         item {
+                            Column(
+                                modifier = Modifier.animateContentSize()
+                            ) {
+                                if (isFilterOpened) {
+                                    Text(text = "Filters")
+
+                                    FlowRow {
+                                        repeat(10) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Checkbox(
+                                                    checked = false,
+                                                    onCheckedChange = { /*TODO*/ })
+                                                Text(
+                                                    text = "Work $it",
+                                                    style = MaterialTheme.typography.body2
+                                                )
+                                                Spacer(
+                                                    modifier = Modifier.width(
+                                                        10.dp
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(15.dp))
+                                }
+                            }
+
                             Text(text = "Upcoming")
 
                             Spacer(modifier = Modifier.height(10.dp))
@@ -249,6 +289,7 @@ private fun TopBar(
     onMenuIconClick: () -> Unit,
     onSearchIconClick: () -> Unit,
     onFilterIconClick: () -> Unit,
+    isFilterOpened: Boolean,
     angle: Float,
     title: String
 ) {
@@ -269,7 +310,12 @@ private fun TopBar(
             }
 
             IconButton(onClick = onFilterIconClick) {
-                Icon(Icons.Rounded.FilterList, contentDescription = null)
+                Crossfade(targetState = isFilterOpened) { isOpen ->
+                    if (!isOpen)
+                        Icon(Icons.Rounded.FilterList, contentDescription = null)
+                    else
+                        Icon(painter = painterResource(id = R.drawable.ic_filter_list_off), contentDescription = null)
+                }
             }
         },
         backgroundColor = MaterialTheme.colors.background,
@@ -470,7 +516,6 @@ private fun CategoryListItem(
                         else
                             checkedList.remove(index)
                     },
-                    colors = CheckboxDefaults.colors(uncheckedColor = DarkBlue800)
                 )
             },
             text = {
