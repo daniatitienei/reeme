@@ -55,6 +55,7 @@ dependencies {
     def accompanistVersion = "0.21.1-beta"
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion"
     implementation "com.google.accompanist:accompanist-navigation-animation:$accompanistVersion"
+    implementation "com.google.accompanist:accompanist-flowlayout:$accompanistVersion"
 
     implementation("io.coil-kt:coil-compose:1.4.0")
     implementation("io.coil-kt:coil-svg:1.4.0")
