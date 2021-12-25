@@ -264,6 +264,7 @@ private fun CreateCategoryAlertDialog(
 
                 Spacer(modifier = Modifier.height(15.dp))
 
+                /* TODO Add done imeAction */
                 OutlinedTextField(
                     value = categoryTitleValue,
                     onValueChange = onValueChange,
@@ -314,7 +315,10 @@ private fun TopBar(
                     if (!isOpen)
                         Icon(Icons.Rounded.FilterList, contentDescription = null)
                     else
-                        Icon(painter = painterResource(id = R.drawable.ic_filter_list_off), contentDescription = null)
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_filter_list_off),
+                            contentDescription = null
+                        )
                 }
             }
         },
@@ -454,12 +458,15 @@ private fun CategoriesListModal(
 
                 CategoryListItem(
                     isChecked = isChecked,
-                    onCheckedClick = {
-                        isChecked = !isChecked
+                    onCheckedClick = { newValue ->
+                        isChecked = newValue
+
+                        if (isChecked)
+                            checkedList.add(index)
+                        else
+                            checkedList.remove(index)
                     },
-                    checkedList = checkedList,
                     categoryName = "Work",
-                    index = index
                 )
             }
 
@@ -491,31 +498,19 @@ private fun CategoriesListModal(
 @Composable
 private fun CategoryListItem(
     isChecked: Boolean,
-    onCheckedClick: () -> Unit,
-    checkedList: MutableList<Int>,
+    onCheckedClick: (Boolean) -> Unit,
     categoryName: String,
-    index: Int
 ) {
-    Box(modifier = Modifier.clickable {
-        onCheckedClick()
-
-        if (isChecked)
-            checkedList.add(index)
-        else
-            checkedList.remove(index)
-    }) {
+    Box(
+        modifier = Modifier.clickable {
+            onCheckedClick(!isChecked)
+        }
+    ) {
         ListItem(
             icon = {
                 Checkbox(
                     checked = isChecked,
-                    onCheckedChange = {
-                        onCheckedClick()
-
-                        if (isChecked)
-                            checkedList.add(index)
-                        else
-                            checkedList.remove(index)
-                    },
+                    onCheckedChange = onCheckedClick
                 )
             },
             text = {
