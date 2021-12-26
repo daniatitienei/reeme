@@ -1,10 +1,14 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder
 
+import android.app.DatePickerDialog
+import android.content.Context
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -13,23 +17,79 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
-import com.google.accompanist.flowlayout.FlowCrossAxisAlignment
+import com.atitienei_daniel.reeme.presentation.theme.*
 import com.google.accompanist.flowlayout.FlowRow
+import java.util.*
 
+@ExperimentalMaterialApi
 @Composable
 fun CreateReminderScreen() {
     val scrollState = rememberScrollState()
 
-    var titleValue by remember {
+    val colors = listOf(
+        Red900,
+        Blue900,
+        Yellow900,
+        Magenta900,
+        Orange900,
+        Lime900
+    )
+
+    var selectedColorIndex by remember {
+        mutableStateOf(0)
+    }
+
+    var title by remember {
         mutableStateOf("")
     }
 
-    var descriptionValue by remember {
+    var description by remember {
         mutableStateOf("")
     }
+
+    var isPinned by remember {
+        mutableStateOf(false)
+    }
+
+    var date by remember {
+        mutableStateOf("")
+    }
+
+    var showDatePicker by remember {
+        mutableStateOf(false)
+    }
+
+    var time by remember {
+        mutableStateOf("")
+    }
+
+    var showTimePicker by remember {
+        mutableStateOf(false)
+    }
+
+    var repeat by remember {
+        mutableStateOf("")
+    }
+
+    var showRepeatPicker by remember {
+        mutableStateOf(false)
+    }
+
+    if (showDatePicker)
+        ShowDatePicker(
+            context = LocalContext.current,
+            onDatePicked = {
+                date = it
+                showDatePicker = false
+            },
+            onDismissRequest = {
+                showDatePicker = false
+            }
+        )
 
     Scaffold(
         topBar = {
@@ -39,7 +99,11 @@ fun CreateReminderScreen() {
                 },
                 navigationIcon = {
                     IconButton(onClick = { /*TODO*/ }) {
-                        Icon(Icons.Rounded.ArrowBackIosNew, contentDescription = "Back")
+                        Icon(
+                            Icons.Rounded.ArrowBackIosNew,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colors.primary
+                        )
                     }
                 },
                 backgroundColor = MaterialTheme.colors.background
@@ -64,10 +128,7 @@ fun CreateReminderScreen() {
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .scrollable(
-                    state = scrollState,
-                    orientation = Orientation.Vertical
-                )
+                .verticalScroll(scrollState)
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
@@ -77,8 +138,8 @@ fun CreateReminderScreen() {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
-                    value = titleValue,
-                    onValueChange = { titleValue = it },
+                    value = title,
+                    onValueChange = { title = it },
                     placeholder = {
                         Text(
                             text = "Enter title",
@@ -91,8 +152,8 @@ fun CreateReminderScreen() {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
-                    value = descriptionValue,
-                    onValueChange = { descriptionValue = it },
+                    value = description,
+                    onValueChange = { description = it },
                     placeholder = {
                         Text(
                             text = "Enter description",
@@ -105,16 +166,32 @@ fun CreateReminderScreen() {
                 Spacer(modifier = Modifier.height(5.dp))
 
                 Row(
+                    modifier = Modifier.clickable {
+                        isPinned = !isPinned
+                    },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Checkbox(checked = false, onCheckedChange = {})
+                    Checkbox(
+                        checked = isPinned,
+                        onCheckedChange = {
+                            isPinned = it
+                        }
+                    )
                     Text(text = "Pinned")
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            /* TODO Colors */
+            SelectReminderCardColor(
+                colors = colors,
+                selectedColorIndex = selectedColorIndex,
+                onClick = { index ->
+                    selectedColorIndex = index
+                }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Column {
                 Text(text = "Date and time")
@@ -122,8 +199,8 @@ fun CreateReminderScreen() {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
-                    value = descriptionValue,
-                    onValueChange = { descriptionValue = it },
+                    value = date,
+                    onValueChange = { date = it },
                     placeholder = {
                         Text(
                             text = "Select date",
@@ -131,16 +208,26 @@ fun CreateReminderScreen() {
                             color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
                         )
                     },
+                    textStyle = MaterialTheme.typography.body2,
                     trailingIcon = {
-                        Icon(Icons.Rounded.CalendarToday, contentDescription = null)
+                        val color by animateColorAsState(
+                            targetValue = if (date.isNotEmpty()) MaterialTheme.colors.primary else MaterialTheme.colors.primary.copy(
+                                alpha = 0.5f
+                            )
+                        )
+                        Icon(Icons.Rounded.DateRange, contentDescription = null, tint = color)
+                    },
+                    enabled = false,
+                    modifier = Modifier.clickable {
+                        showDatePicker = true
                     }
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
-                    value = descriptionValue,
-                    onValueChange = { descriptionValue = it },
+                    value = description,
+                    onValueChange = { description = it },
                     placeholder = {
                         Text(
                             text = "Select time",
@@ -157,8 +244,8 @@ fun CreateReminderScreen() {
 
                 /* TODO Pop select menu */
                 OutlinedTextField(
-                    value = descriptionValue,
-                    onValueChange = { descriptionValue = it },
+                    value = description,
+                    onValueChange = { description = it },
                     placeholder = {
                         Text(
                             text = "Repeat",
@@ -172,7 +259,7 @@ fun CreateReminderScreen() {
                 )
             }
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Column {
                 Text(text = "Categories")
@@ -183,14 +270,31 @@ fun CreateReminderScreen() {
                     crossAxisSpacing = 10.dp,
                     mainAxisSpacing = 10.dp
                 ) {
-                    repeat(8) {
-                        Box(
-                            modifier = Modifier
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(MaterialTheme.colors.primary)
-                                .padding(horizontal = 15.dp, vertical = 10.dp)
+                    repeat(32) {
+                        var isSelected by remember {
+                            mutableStateOf(false)
+                        }
+
+                        val backgroundColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.primary else MaterialTheme.colors.background)
+
+                        val textColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.background else MaterialTheme.colors.primary)
+
+                        Card(
+                            onClick = {
+                                isSelected = !isSelected
+                            }
                         ) {
-                            Text(text = "Work", color = MaterialTheme.colors.background)
+                            Box(
+                                modifier = Modifier
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(backgroundColor)
+                                    .padding(horizontal = 15.dp, vertical = 5.dp),
+                            ) {
+                                Text(
+                                    text = "Work",
+                                    color = textColor
+                                )
+                            }
                         }
                     }
                 }
@@ -199,6 +303,65 @@ fun CreateReminderScreen() {
     }
 }
 
+@Composable
+private fun SelectReminderCardColor(
+    colors: List<Color>,
+    selectedColorIndex: Int,
+    onClick: (Int) -> Unit
+) {
+    FlowRow(
+        mainAxisSpacing = 15.dp,
+        crossAxisSpacing = 10.dp,
+    ) {
+        repeat(colors.size) { index ->
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(colors[index])
+                    .size(42.dp)
+                    .clickable {
+                        onClick(index)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (selectedColorIndex == index)
+                    Icon(
+                        Icons.Rounded.Check,
+                        contentDescription = "Selected",
+                        tint = MaterialTheme.colors.primary
+                    )
+            }
+        }
+    }
+}
+
+@Composable
+fun ShowDatePicker(
+    context: Context,
+    onDatePicked: (String) -> Unit,
+    onDismissRequest: () -> Unit
+) {
+    val calendar = Calendar.getInstance()
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+    calendar.time = Date()
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, yearValue, monthValue, dayOfMonth ->
+            onDatePicked("$dayOfMonth/${monthValue + 1}/$yearValue")
+        }, year, month, day
+    )
+
+    datePickerDialog.setOnDismissListener {
+        onDismissRequest()
+    }
+
+    datePickerDialog.show()
+}
+
+@ExperimentalMaterialApi
 @Preview
 @Composable
 private fun CreateReminderPreview() {

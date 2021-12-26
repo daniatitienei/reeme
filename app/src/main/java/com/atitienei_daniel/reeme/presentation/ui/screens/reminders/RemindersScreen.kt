@@ -34,10 +34,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.atitienei_daniel.reeme.R
 import com.atitienei_daniel.reeme.presentation.theme.DarkBlue800
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.components.StaggeredVerticalGrid
+import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.launch
 
@@ -45,10 +48,10 @@ import kotlinx.coroutines.launch
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
-fun RemindersScreen() {
-
-    val modalBottomSheetState =
-        rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+fun RemindersScreen(
+    navController: NavController
+) {
+    val scrollState = rememberScrollState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -93,160 +96,151 @@ fun RemindersScreen() {
             }
         )
 
-    ModalBottomSheetLayout(
-        sheetState = modalBottomSheetState,
-        sheetContent = {
-            CategoriesListModal(
-                openCreateCategoryDialog = {
-                    isDialogOpened = true
-                }
-            )
-        }
-    ) {
-        BackdropScaffold(
-            scaffoldState = backdropState,
-            appBar = {
-                val rotationAngle by animateFloatAsState(targetValue = if (backdropState.isRevealed) 90f else 0f)
 
-                Crossfade(targetState = backdropState.isConcealed) { isConcealed ->
-                    if (isConcealed)
-                        TopBar(
-                            title = "Reminders",
-                            angle = rotationAngle,
-                            onMenuIconClick = { /*TODO*/ },
-                            onSearchIconClick = {
-                                scope.launch {
-                                    backdropState.reveal()
-                                }
-                            },
-                            onFilterIconClick = { isFilterOpened = !isFilterOpened },
-                            isFilterOpened = isFilterOpened
-                        )
-                    else
-                        SearchTopBar(
-                            value = searchBarValue,
-                            onValueChange = { searchBarValue = it },
-                            onCloseIconClick = {
-                                scope.launch {
-                                    backdropState.conceal()
-                                }
-                            },
-                            onClearTextClick = { searchBarValue = "" },
-                            interactionSource = interactionSource,
-                            searchIconColor = searchIconColor,
-                            angle = rotationAngle
-                        )
-                }
-            },
-            backLayerContent = {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(17) {
-                        ListItem(
-                            text = {
-                                Text(
-                                    text = "Recent search ${it + 1}",
-                                    style = MaterialTheme.typography.body2
-                                )
-                            },
-                            icon = {
-                                Icon(
-                                    Icons.Rounded.History,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colors.primary
-                                )
-                            },
-                            modifier = Modifier.clickable { }
-                        )
-                    }
-                }
-            },
-            frontLayerContent = {
-                Scaffold(
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = {
-                                scope.launch {
-                                    modalBottomSheetState.show()
-                                }
+    BackdropScaffold(
+        scaffoldState = backdropState,
+        appBar = {
+            val rotationAngle by animateFloatAsState(targetValue = if (backdropState.isRevealed) 90f else 0f)
+
+            Crossfade(targetState = backdropState.isConcealed) { isConcealed ->
+                if (isConcealed)
+                    TopBar(
+                        title = "Reminders",
+                        angle = rotationAngle,
+                        onMenuIconClick = { /*TODO*/ },
+                        onSearchIconClick = {
+                            scope.launch {
+                                backdropState.reveal()
                             }
-                        ) {
-                            Icon(Icons.Rounded.Add, contentDescription = null)
+                        },
+                        onFilterIconClick = { isFilterOpened = !isFilterOpened },
+                        isFilterOpened = isFilterOpened
+                    )
+                else
+                    SearchTopBar(
+                        value = searchBarValue,
+                        onValueChange = { searchBarValue = it },
+                        onCloseIconClick = {
+                            scope.launch {
+                                backdropState.conceal()
+                            }
+                        },
+                        onClearTextClick = { searchBarValue = "" },
+                        interactionSource = interactionSource,
+                        searchIconColor = searchIconColor,
+                        angle = rotationAngle
+                    )
+            }
+        },
+        backLayerContent = {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(17) {
+                    ListItem(
+                        text = {
+                            Text(
+                                text = "Recent search ${it + 1}",
+                                style = MaterialTheme.typography.body2
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                Icons.Rounded.History,
+                                contentDescription = null,
+                                tint = MaterialTheme.colors.primary
+                            )
+                        },
+                        modifier = Modifier.clickable { }
+                    )
+                }
+            }
+        },
+        frontLayerContent = {
+            Scaffold(
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = {
+                            navController.navigate(Screens.CreateReminder.route) {
+                                launchSingleTop = true
+                            }
                         }
-                    }
-                ) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(horizontal = 15.dp, vertical = 15.dp)
                     ) {
-                        item {
-                            Column(
-                                modifier = Modifier.animateContentSize()
+                        Icon(Icons.Rounded.Add, contentDescription = null)
+                    }
+                }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 15.dp, vertical = 15.dp)
+                        .verticalScroll(scrollState)
+                ) {
+                    Column(
+                        modifier = Modifier.animateContentSize()
+                    ) {
+                        if (isFilterOpened) {
+                            Text(text = "Filters")
+
+                            FlowRow(
+                                mainAxisSpacing = 10.dp
                             ) {
-                                if (isFilterOpened) {
-                                    Text(text = "Filters")
-
-                                    FlowRow(
-                                        mainAxisSpacing = 10.dp
+                                repeat(10) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        repeat(10) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Checkbox(
-                                                    checked = false,
-                                                    onCheckedChange = { /*TODO*/ })
-                                                Text(
-                                                    text = "Work $it",
-                                                    style = MaterialTheme.typography.body2
-                                                )
-                                            }
-                                        }
+                                        Checkbox(
+                                            checked = false,
+                                            onCheckedChange = { /*TODO*/ })
+                                        Text(
+                                            text = "Work $it",
+                                            style = MaterialTheme.typography.body2
+                                        )
                                     }
-
-                                    Spacer(modifier = Modifier.height(15.dp))
                                 }
                             }
 
-                            Text(text = "Upcoming")
+                            Spacer(modifier = Modifier.height(15.dp))
+                        }
+                    }
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                    Text(text = "Upcoming")
 
-                            StaggeredVerticalGrid {
-                                repeat(18) {
-                                    Box(
-                                        modifier = Modifier.padding(
-                                            start = if (it % 2 != 0) 5.dp else 0.dp,
-                                            end = if (it % 2 != 0) 0.dp else 5.dp,
-                                            bottom = 10.dp
-                                        )
-                                    ) {
-                                        if (it % 3 != 0)
-                                            ReminderCard(
-                                                color = Color(0xffD2F49B),
-                                                title = "Take a pill",
-                                                description = "Lorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsum",
-                                                time = "Tommorow, 4:20"
-                                            )
-                                        else
-                                            ReminderCard(
-                                                color = Color(0xffF49B9B),
-                                                title = "Take a pill",
-                                                description = "Lorem ipsum lorem ipsum lorem ipsum",
-                                                time = "Tommorow, 4:20"
-                                            )
-                                    }
-                                }
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    StaggeredVerticalGrid {
+                        repeat(18) {
+                            Box(
+                                modifier = Modifier.padding(
+                                    start = if (it % 2 != 0) 5.dp else 0.dp,
+                                    end = if (it % 2 != 0) 0.dp else 5.dp,
+                                    bottom = 10.dp
+                                )
+                            ) {
+                                if (it % 3 != 0)
+                                    ReminderCard(
+                                        color = Color(0xffD2F49B),
+                                        title = "Take a pill",
+                                        description = "Lorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsum",
+                                        time = "Tommorow, 4:20"
+                                    )
+                                else
+                                    ReminderCard(
+                                        color = Color(0xffF49B9B),
+                                        title = "Take a pill",
+                                        description = "Lorem ipsum lorem ipsum lorem ipsum",
+                                        time = "Tommorow, 4:20"
+                                    )
                             }
                         }
                     }
                 }
-            },
-            headerHeight = 0.dp,
-            stickyFrontLayer = false,
-            gesturesEnabled = false,
-            backLayerBackgroundColor = MaterialTheme.colors.background,
-        )
-    }
+            }
+        },
+        headerHeight = 0.dp,
+        stickyFrontLayer = false,
+        gesturesEnabled = false,
+        backLayerBackgroundColor = MaterialTheme.colors.background,
+    )
 }
+
 
 @Composable
 private fun CreateCategoryAlertDialog(
@@ -602,6 +596,6 @@ private fun ReminderCardPreview() {
 @Composable
 private fun RemindersPreview() {
     ReemeTheme {
-        RemindersScreen()
+        RemindersScreen(rememberNavController())
     }
 }
