@@ -11,6 +11,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
 import com.atitienei_daniel.reeme.presentation.Navigation
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
+import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.login.LoginScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.on_boarding.OnBoardingScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.register.RegisterScreen
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                Navigation()
+                CreateReminderScreen()
             }
         }
     }

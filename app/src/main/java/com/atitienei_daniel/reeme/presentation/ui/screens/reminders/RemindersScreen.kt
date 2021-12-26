@@ -1,6 +1,5 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.reminders
 
-import androidx.compose.animation.Animatable
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -14,20 +13,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActionScope
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.atitienei_daniel.reeme.R
@@ -37,6 +41,7 @@ import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.components.S
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.launch
 
+@ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
@@ -44,6 +49,8 @@ fun RemindersScreen() {
 
     val modalBottomSheetState =
         rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val scope = rememberCoroutineScope()
 
@@ -80,7 +87,10 @@ fun RemindersScreen() {
             categoryTitleValue = newCategoryTitle,
             onValueChange = { newCategoryTitle = it },
             onDismissRequest = { isDialogOpened = false },
-            onCreateCategoryButtonClick = { /*TODO*/ }
+            onCreateCategoryButtonClick = { /*TODO*/ },
+            onDone = {
+                keyboardController?.hide()
+            }
         )
 
     ModalBottomSheetLayout(
@@ -174,7 +184,9 @@ fun RemindersScreen() {
                                 if (isFilterOpened) {
                                     Text(text = "Filters")
 
-                                    FlowRow {
+                                    FlowRow(
+                                        mainAxisSpacing = 10.dp
+                                    ) {
                                         repeat(10) {
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically
@@ -185,11 +197,6 @@ fun RemindersScreen() {
                                                 Text(
                                                     text = "Work $it",
                                                     style = MaterialTheme.typography.body2
-                                                )
-                                                Spacer(
-                                                    modifier = Modifier.width(
-                                                        10.dp
-                                                    )
                                                 )
                                             }
                                         }
@@ -246,7 +253,8 @@ private fun CreateCategoryAlertDialog(
     onDismissRequest: () -> Unit,
     onValueChange: (String) -> Unit,
     onCreateCategoryButtonClick: () -> Unit,
-    categoryTitleValue: String,
+    onDone: (KeyboardActionScope) -> Unit,
+    categoryTitleValue: String
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -268,7 +276,14 @@ private fun CreateCategoryAlertDialog(
                 OutlinedTextField(
                     value = categoryTitleValue,
                     onValueChange = onValueChange,
-                    placeholder = { Text(text = "Enter title") }
+                    placeholder = { Text(text = "Enter title") },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                        capitalization = KeyboardCapitalization.Sentences
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = onDone
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -580,6 +595,7 @@ private fun ReminderCardPreview() {
     }
 }
 
+@ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Preview(showBackground = true)
