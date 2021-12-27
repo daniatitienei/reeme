@@ -8,7 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.geometry.Offset
+import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderBottomSheet
 import com.atitienei_daniel.reeme.presentation.ui.screens.login.LoginScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.on_boarding.OnBoardingScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.register.RegisterScreen
@@ -121,7 +121,7 @@ fun Navigation() {
             }
 
             composable(route = Screens.Reminders.route) {
-                RemindersScreen()
+                RemindersScreen(navController = navController)
             }
         }
     }

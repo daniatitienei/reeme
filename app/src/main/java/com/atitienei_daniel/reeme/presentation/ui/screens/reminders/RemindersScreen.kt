@@ -1,6 +1,5 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.reminders
 
-import androidx.compose.animation.Animatable
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -14,36 +13,51 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActionScope
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.atitienei_daniel.reeme.R
 import com.atitienei_daniel.reeme.presentation.theme.DarkBlue800
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
+import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderBottomSheet
 import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.components.StaggeredVerticalGrid
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.launch
 
+@ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
-fun RemindersScreen() {
+fun RemindersScreen(
+    navController: NavController
+) {
+    val scrollState = rememberScrollState()
 
-    val modalBottomSheetState =
-        rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
+    )
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val scope = rememberCoroutineScope()
 
@@ -80,18 +94,28 @@ fun RemindersScreen() {
             categoryTitleValue = newCategoryTitle,
             onValueChange = { newCategoryTitle = it },
             onDismissRequest = { isDialogOpened = false },
-            onCreateCategoryButtonClick = { /*TODO*/ }
+            onCreateCategoryButtonClick = { /*TODO*/ },
+            onDone = {
+                keyboardController?.hide()
+            }
         )
 
-    ModalBottomSheetLayout(
-        sheetState = modalBottomSheetState,
+
+    BottomSheetScaffold(
+        scaffoldState = bottomSheetScaffoldState,
         sheetContent = {
-            CategoriesListModal(
-                openCreateCategoryDialog = {
+            CreateReminderBottomSheet(
+                onNavigationIconClick = {
+                    scope.launch {
+                        bottomSheetScaffoldState.bottomSheetState.collapse()
+                    }
+                },
+                onCreateNewCategoryClick = {
                     isDialogOpened = true
                 }
             )
-        }
+        },
+        sheetPeekHeight = 0.dp,
     ) {
         BackdropScaffold(
             scaffoldState = backdropState,
@@ -155,8 +179,11 @@ fun RemindersScreen() {
                     floatingActionButton = {
                         FloatingActionButton(
                             onClick = {
+//                                navController.navigate(Screens.CreateReminder.route) {
+//                                    launchSingleTop = true
+//                                }
                                 scope.launch {
-                                    modalBottomSheetState.show()
+                                    bottomSheetScaffoldState.bottomSheetState.expand()
                                 }
                             }
                         ) {
@@ -164,69 +191,66 @@ fun RemindersScreen() {
                         }
                     }
                 ) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(horizontal = 15.dp, vertical = 15.dp)
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 15.dp, vertical = 15.dp)
+                            .verticalScroll(scrollState)
                     ) {
-                        item {
-                            Column(
-                                modifier = Modifier.animateContentSize()
-                            ) {
-                                if (isFilterOpened) {
-                                    Text(text = "Filters")
+                        Column(
+                            modifier = Modifier.animateContentSize()
+                        ) {
+                            if (isFilterOpened) {
+                                Text(text = "Filters")
 
-                                    FlowRow {
-                                        repeat(10) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Checkbox(
-                                                    checked = false,
-                                                    onCheckedChange = { /*TODO*/ })
-                                                Text(
-                                                    text = "Work $it",
-                                                    style = MaterialTheme.typography.body2
-                                                )
-                                                Spacer(
-                                                    modifier = Modifier.width(
-                                                        10.dp
-                                                    )
-                                                )
-                                            }
+                                FlowRow(
+                                    mainAxisSpacing = 10.dp
+                                ) {
+                                    repeat(10) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Checkbox(
+                                                checked = false,
+                                                onCheckedChange = { /*TODO*/ })
+                                            Text(
+                                                text = "Work $it",
+                                                style = MaterialTheme.typography.body2
+                                            )
                                         }
                                     }
-
-                                    Spacer(modifier = Modifier.height(15.dp))
                                 }
+
+                                Spacer(modifier = Modifier.height(15.dp))
                             }
+                        }
 
-                            Text(text = "Upcoming")
+                        Text(text = "Upcoming")
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                            StaggeredVerticalGrid {
-                                repeat(18) {
-                                    Box(
-                                        modifier = Modifier.padding(
-                                            start = if (it % 2 != 0) 5.dp else 0.dp,
-                                            end = if (it % 2 != 0) 0.dp else 5.dp,
-                                            bottom = 10.dp
+                        StaggeredVerticalGrid {
+                            repeat(18) {
+                                Box(
+                                    modifier = Modifier.padding(
+                                        start = if (it % 2 != 0) 5.dp else 0.dp,
+                                        end = if (it % 2 != 0) 0.dp else 5.dp,
+                                        bottom = 10.dp
+                                    )
+                                ) {
+                                    if (it % 3 != 0)
+                                        ReminderCard(
+                                            color = Color(0xffD2F49B),
+                                            title = "Take a pill",
+                                            description = "Lorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsum",
+                                            time = "Tommorow, 4:20"
                                         )
-                                    ) {
-                                        if (it % 3 != 0)
-                                            ReminderCard(
-                                                color = Color(0xffD2F49B),
-                                                title = "Take a pill",
-                                                description = "Lorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsum",
-                                                time = "Tommorow, 4:20"
-                                            )
-                                        else
-                                            ReminderCard(
-                                                color = Color(0xffF49B9B),
-                                                title = "Take a pill",
-                                                description = "Lorem ipsum lorem ipsum lorem ipsum",
-                                                time = "Tommorow, 4:20"
-                                            )
-                                    }
+                                    else
+                                        ReminderCard(
+                                            color = Color(0xffF49B9B),
+                                            title = "Take a pill",
+                                            description = "Lorem ipsum lorem ipsum lorem ipsum",
+                                            time = "Tommorow, 4:20"
+                                        )
                                 }
                             }
                         }
@@ -241,12 +265,14 @@ fun RemindersScreen() {
     }
 }
 
+
 @Composable
 private fun CreateCategoryAlertDialog(
     onDismissRequest: () -> Unit,
     onValueChange: (String) -> Unit,
     onCreateCategoryButtonClick: () -> Unit,
-    categoryTitleValue: String,
+    onDone: (KeyboardActionScope) -> Unit,
+    categoryTitleValue: String
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -264,10 +290,18 @@ private fun CreateCategoryAlertDialog(
 
                 Spacer(modifier = Modifier.height(15.dp))
 
+                /* TODO Add done imeAction */
                 OutlinedTextField(
                     value = categoryTitleValue,
                     onValueChange = onValueChange,
-                    placeholder = { Text(text = "Enter title") }
+                    placeholder = { Text(text = "Enter title") },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                        capitalization = KeyboardCapitalization.Sentences
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = onDone
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -314,7 +348,10 @@ private fun TopBar(
                     if (!isOpen)
                         Icon(Icons.Rounded.FilterList, contentDescription = null)
                     else
-                        Icon(painter = painterResource(id = R.drawable.ic_filter_list_off), contentDescription = null)
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_filter_list_off),
+                            contentDescription = null
+                        )
                 }
             }
         },
@@ -454,12 +491,15 @@ private fun CategoriesListModal(
 
                 CategoryListItem(
                     isChecked = isChecked,
-                    onCheckedClick = {
-                        isChecked = !isChecked
+                    onCheckedClick = { newValue ->
+                        isChecked = newValue
+
+                        if (isChecked)
+                            checkedList.add(index)
+                        else
+                            checkedList.remove(index)
                     },
-                    checkedList = checkedList,
                     categoryName = "Work",
-                    index = index
                 )
             }
 
@@ -491,31 +531,19 @@ private fun CategoriesListModal(
 @Composable
 private fun CategoryListItem(
     isChecked: Boolean,
-    onCheckedClick: () -> Unit,
-    checkedList: MutableList<Int>,
+    onCheckedClick: (Boolean) -> Unit,
     categoryName: String,
-    index: Int
 ) {
-    Box(modifier = Modifier.clickable {
-        onCheckedClick()
-
-        if (isChecked)
-            checkedList.add(index)
-        else
-            checkedList.remove(index)
-    }) {
+    Box(
+        modifier = Modifier.clickable {
+            onCheckedClick(!isChecked)
+        }
+    ) {
         ListItem(
             icon = {
                 Checkbox(
                     checked = isChecked,
-                    onCheckedChange = {
-                        onCheckedClick()
-
-                        if (isChecked)
-                            checkedList.add(index)
-                        else
-                            checkedList.remove(index)
-                    },
+                    onCheckedChange = onCheckedClick
                 )
             },
             text = {
@@ -585,12 +613,13 @@ private fun ReminderCardPreview() {
     }
 }
 
+@ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Preview(showBackground = true)
 @Composable
 private fun RemindersPreview() {
     ReemeTheme {
-        RemindersScreen()
+        RemindersScreen(rememberNavController())
     }
 }
