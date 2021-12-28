@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.atitienei_daniel.reeme.presentation.theme.*
@@ -123,34 +124,29 @@ fun CreateReminderScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(text = "Create reminder")
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.Rounded.ArrowBackIosNew,
-                            contentDescription = "Close",
-                            tint = MaterialTheme.colors.primary,
-                        )
-                    }
-                },
                 backgroundColor = MaterialTheme.colors.background
-            )
+            ) {
+                Text(
+                    text = "Create reminder",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         },
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentWidth(align = Alignment.CenterHorizontally)
-                    .padding(horizontal = 20.dp)
+            BottomAppBar(
+                backgroundColor = MaterialTheme.colors.background
             ) {
-                Button(
-                    onClick = { /*TODO*/ },
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical = 10.dp)
+                TextButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "Create")
+                    Text(text = "Cancel", color = MaterialTheme.colors.primary.copy(0.6f))
+                }
+
+                TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+                    Text(text = "Create", color = MaterialTheme.colors.primary)
                 }
             }
         }
