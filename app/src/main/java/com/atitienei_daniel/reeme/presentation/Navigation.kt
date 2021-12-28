@@ -32,7 +32,7 @@ fun Navigation() {
 
         AnimatedNavHost(
             navController = navController,
-            startDestination = Screens.CreateReminder.route
+            startDestination = Screens.Reminders.route
         ) {
             composable(
                 route = Screens.OnBoardingScreen.route,

@@ -25,6 +25,10 @@ class RegisterViewModel @Inject constructor(
     private var _nameError = mutableStateOf<String?>(null)
     val nameError: State<String?> = _nameError
 
+    init {
+        Log.d("CurrentUser", auth.currentUser?.email.toString())
+    }
+
     fun registerUser(email: String, name: String, password: String, onAccountCreated: () -> Unit) {
         if (email.isEmpty())
             _emailError.value = "Email shouldn't be empty."

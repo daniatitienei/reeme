@@ -24,14 +24,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.presentation.theme.*
 import com.google.accompanist.flowlayout.FlowRow
+import com.google.firebase.Timestamp
 import java.util.*
 
 @ExperimentalMaterialApi
 @Composable
-fun CreateReminderScreen(navController: NavController) {
+fun CreateReminderScreen(
+    navController: NavController,
+    viewModel: CreateReminderViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -145,7 +151,22 @@ fun CreateReminderScreen(navController: NavController) {
                     Text(text = "Cancel", color = MaterialTheme.colors.primary.copy(0.6f))
                 }
 
-                TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+                TextButton(
+                    onClick = {
+                        viewModel.createReminder(
+                            Reminder(
+                                title = "Programez",
+                                description = "Trebuie sa rezolv buguri",
+                                color = Yellow900.hashCode().toString(),
+                                categories = listOf("Programming", "Work"),
+                                pinned = false,
+                                repeat = 0,
+                                timestamp = Timestamp(Date())
+                            )
+                        )
+                              },
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(text = "Create", color = MaterialTheme.colors.primary)
                 }
             }
