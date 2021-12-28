@@ -23,16 +23,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.atitienei_daniel.reeme.presentation.theme.*
 import com.google.accompanist.flowlayout.FlowRow
 import java.util.*
 
 @ExperimentalMaterialApi
 @Composable
-fun CreateReminderBottomSheet(
-    onNavigationIconClick: () -> Unit,
-    onCreateNewCategoryClick: () -> Unit,
-) {
+fun CreateReminderScreen(navController: NavController) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -103,6 +101,7 @@ fun CreateReminderBottomSheet(
             onDatePicked = {
                 date = it
                 showDatePicker = false
+                showTimePicker = true
             },
             onDismissRequest = {
                 showDatePicker = false
@@ -128,12 +127,11 @@ fun CreateReminderBottomSheet(
                     Text(text = "Create reminder")
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigationIconClick) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.Rounded.ArrowBackIosNew,
                             contentDescription = "Close",
                             tint = MaterialTheme.colors.primary,
-                            modifier = Modifier.rotate(-90f)
                         )
                     }
                 },
@@ -208,24 +206,14 @@ fun CreateReminderBottomSheet(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedPicker(
-                    value = date,
-                    placeholder = "Select date",
+                    value = if (date.isNotEmpty() && time.isNotEmpty()) "On $date, at $time" else "",
+                    placeholder = "Select date and time",
                     trailingIcon = Icons.Rounded.DateRange,
                     onClick = { showDatePicker = true }
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                OutlinedPicker(
-                    value = time,
-                    placeholder = "Select time",
-                    trailingIcon = Icons.Outlined.Schedule,
-                    onClick = { showTimePicker = true }
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                /* TODO Popup select menu */
                 Column {
                     OutlinedPicker(
                         value = repeat,
@@ -280,7 +268,7 @@ fun CreateReminderBottomSheet(
                     else
                         selectedCategories.add(index)
                 },
-                onCreateCategoryClick = onCreateNewCategoryClick
+                onCreateCategoryClick = { /*TODO*/ }
             )
         }
     }

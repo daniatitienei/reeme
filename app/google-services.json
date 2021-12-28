@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "859320395506",
+    "project_id": "reeme-99875",
+    "storage_bucket": "reeme-99875.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:859320395506:android:70d873d30357883ba8d26b",
+        "android_client_info": {
+          "package_name": "com.atitienei_daniel.reeme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "859320395506-mmfa296put4l1dno7uc823k0s321ipnv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atitienei_daniel.reeme",
+            "certificate_hash": "175416ff5eba3c2000261437c494fce43083dc8f"
+          }
+        },
+        {
+          "client_id": "859320395506-hiqu2khd2747j6ju3642dbt6grjj8r6o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmdsACPkEQwpOaYbanm4cgkmd9xV-1HmA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "859320395506-hiqu2khd2747j6ju3642dbt6grjj8r6o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

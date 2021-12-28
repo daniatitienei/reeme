@@ -8,7 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
-import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderBottomSheet
+import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.login.LoginScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.on_boarding.OnBoardingScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.register.RegisterScreen
@@ -122,6 +122,36 @@ fun Navigation() {
 
             composable(route = Screens.Reminders.route) {
                 RemindersScreen(navController = navController)
+            }
+
+            composable(
+                route = Screens.CreateReminder.route,
+                enterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { -1000 },
+                        animationSpec = tween(700)
+                    ) + fadeIn()
+                },
+                popEnterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { -1000 },
+                        animationSpec = tween(700)
+                    ) + fadeIn()
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { -1000 },
+                        animationSpec = tween(700)
+                    ) + fadeOut()
+                },
+                popExitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { -1000 },
+                        animationSpec = tween(700)
+                    ) + fadeOut()
+                }
+            ) {
+                CreateReminderScreen(navController = navController)
             }
         }
     }

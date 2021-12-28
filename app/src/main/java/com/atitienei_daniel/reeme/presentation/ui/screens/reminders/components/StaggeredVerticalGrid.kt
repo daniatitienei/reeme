@@ -3,7 +3,10 @@ package com.atitienei_daniel.reeme.presentation.ui.screens.reminders.components
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.dp
+import kotlin.math.ceil
 
+/* Source: https://stackoverflow.com/questions/64237442/how-to-achieve-a-staggered-grid-layout-using-jetpack-compose */
 @Composable
 fun StaggeredVerticalGrid(
     modifier: Modifier = Modifier,
@@ -16,7 +19,7 @@ fun StaggeredVerticalGrid(
         check(constraints.hasBoundedWidth) {
             "Unbounded width not supported"
         }
-        val columns = 2
+        val columns = ceil(constraints.maxWidth / 200.dp.toPx()).toInt()
         val columnWidth = constraints.maxWidth / columns
         val itemConstraints = constraints.copy(maxWidth = columnWidth)
         val colHeights = IntArray(columns) { 0 } // track each column's height
