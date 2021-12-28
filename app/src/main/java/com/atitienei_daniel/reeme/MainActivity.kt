@@ -12,11 +12,13 @@ import androidx.compose.ui.graphics.Color
 import com.atitienei_daniel.reeme.presentation.Navigation
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import dagger.hilt.android.AndroidEntryPoint
 
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

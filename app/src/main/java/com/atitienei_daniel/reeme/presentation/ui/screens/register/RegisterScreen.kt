@@ -1,10 +1,17 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.register
 
+import android.util.Log
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateValueAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.*
 
 import androidx.compose.ui.Alignment
@@ -26,8 +33,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.atitienei_daniel.reeme.presentation.theme.Red900
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
 
@@ -35,7 +44,8 @@ import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
 @ExperimentalAnimationApi
 @Composable
 fun RegisterScreen(
-    navController: NavController = rememberNavController()
+    navController: NavController = rememberNavController(),
+    viewModel: RegisterViewModel = hiltViewModel()
 ) {
 
     val focusManager = LocalFocusManager.current
@@ -55,6 +65,10 @@ fun RegisterScreen(
 
     var confirmPassword by remember {
         mutableStateOf("")
+    }
+
+    var confirmPasswordError by remember {
+        mutableStateOf<String?>(null)
     }
 
     Column(
@@ -81,54 +95,85 @@ fun RegisterScreen(
 
         CredentialTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                if (!viewModel.emailError.value.isNullOrEmpty())
+                    viewModel.clearEmailError()
+                email = it
+            },
             placeholderText = "Email",
             textFieldType = TextFieldType.EMAIL,
             focusManager = focusManager,
+            errorMessage = viewModel.emailError.value
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         CredentialTextField(
             value = name,
-            onValueChange = { name = it },
+            onValueChange = {
+                if (!viewModel.nameError.value.isNullOrEmpty())
+                    viewModel.clearNameError()
+                name = it
+            },
             placeholderText = "Name",
             textFieldType = TextFieldType.NAME,
             focusManager = focusManager,
+            errorMessage = viewModel.nameError.value
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         CredentialTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                if (!viewModel.passwordError.value.isNullOrEmpty())
+                    viewModel.clearPasswordError()
+                password = it
+            },
             placeholderText = "Password",
             textFieldType = TextFieldType.PASSWORD,
             focusManager = focusManager,
+            errorMessage = viewModel.passwordError.value
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         CredentialTextField(
             value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+            onValueChange = {
+                confirmPasswordError = if (password != it)
+                    "Passwords must match."
+                else
+                    null
+
+                confirmPassword = it
+            },
             placeholderText = "Confirm password",
             textFieldType = TextFieldType.CONFIRM_PASSWORD,
             focusManager = focusManager,
-            keyboardController = keyboardController
+            keyboardController = keyboardController,
+            errorMessage = confirmPasswordError
         )
 
         Spacer(modifier = Modifier.height(25.dp))
 
         Button(
             onClick = {
-                navController.navigate(Screens.Reminders.route) {
-                    launchSingleTop = true
+                if (password == confirmPassword)
+                    viewModel.registerUser(
+                        email = email,
+                        name = name,
+                        password = password,
+                        onAccountCreated = {
+                            navController.navigate(Screens.Reminders.route) {
+                                launchSingleTop = true
 
-                    popUpTo(Screens.OnBoardingScreen.route) {
-                        inclusive = true
-                    }
-                }
+                                popUpTo(Screens.OnBoardingScreen.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
             },
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(vertical = 15.dp)
@@ -178,51 +223,81 @@ private fun CredentialTextField(
     placeholderText: String,
     textFieldType: TextFieldType,
     focusManager: FocusManager,
-    keyboardController: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current
+    keyboardController: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current,
+    errorMessage: String? = null
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = {
-            Text(
-                text = placeholderText,
-                color = MaterialTheme.colors.primary.copy(alpha = 0.3f)
-            )
-        },
-        modifier = Modifier
-            .fillMaxWidth(),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            unfocusedBorderColor = MaterialTheme.colors.primary.copy(0.3f),
-        ),
-        singleLine = true,
-        visualTransformation = when (textFieldType) {
-            TextFieldType.PASSWORD -> PasswordVisualTransformation()
-            TextFieldType.CONFIRM_PASSWORD -> PasswordVisualTransformation()
-            else -> VisualTransformation.None
-        },
-        keyboardOptions = KeyboardOptions(
-            imeAction = when (textFieldType) {
-                TextFieldType.CONFIRM_PASSWORD -> ImeAction.Done
-                else -> ImeAction.Next
-            },
-            keyboardType = when (textFieldType) {
-                TextFieldType.EMAIL -> KeyboardType.Email
-                TextFieldType.PASSWORD -> KeyboardType.Password
-                TextFieldType.CONFIRM_PASSWORD -> KeyboardType.Password
-                else -> KeyboardType.Text
-            },
-            capitalization = if (textFieldType == TextFieldType.NAME) KeyboardCapitalization.Words else KeyboardCapitalization.None
-        ),
-        keyboardActions = KeyboardActions(
-            onNext = {
-                focusManager.moveFocus(FocusDirection.Down)
-            },
+    var isPasswordVisible by remember {
+        mutableStateOf(false)
+    }
 
-            onDone = {
-                keyboardController?.hide()
-            }
+    Column(
+        modifier = Modifier.animateContentSize()
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = {
+                Text(
+                    text = placeholderText,
+                    color = MaterialTheme.colors.primary.copy(alpha = 0.3f)
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedBorderColor = MaterialTheme.colors.primary.copy(0.3f),
+            ),
+            singleLine = true,
+            visualTransformation =
+            if ((textFieldType == TextFieldType.PASSWORD || textFieldType == TextFieldType.CONFIRM_PASSWORD) && !isPasswordVisible)
+                PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = {
+                if (textFieldType == TextFieldType.PASSWORD || textFieldType == TextFieldType.CONFIRM_PASSWORD) {
+                    Crossfade(targetState = isPasswordVisible) { isVisible ->
+                        if (isVisible)
+                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                Icon(Icons.Rounded.VisibilityOff, contentDescription = null)
+                            }
+                        else
+                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                Icon(Icons.Rounded.Visibility, contentDescription = null)
+                            }
+                    }
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                imeAction = when (textFieldType) {
+                    TextFieldType.CONFIRM_PASSWORD -> ImeAction.Done
+                    else -> ImeAction.Next
+                },
+                keyboardType = when (textFieldType) {
+                    TextFieldType.EMAIL -> KeyboardType.Email
+                    TextFieldType.PASSWORD -> KeyboardType.Password
+                    TextFieldType.CONFIRM_PASSWORD -> KeyboardType.Password
+                    else -> KeyboardType.Text
+                },
+                capitalization = if (textFieldType == TextFieldType.NAME) KeyboardCapitalization.Words else KeyboardCapitalization.None
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    focusManager.moveFocus(FocusDirection.Down)
+                },
+
+                onDone = {
+                    keyboardController?.hide()
+                }
+            ),
+            isError = !errorMessage.isNullOrEmpty()
         )
-    )
+        if (!errorMessage.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = errorMessage,
+                fontSize = MaterialTheme.typography.caption.fontSize,
+                color = Red900
+            )
+        }
+    }
 }
 
 @ExperimentalComposeUiApi
