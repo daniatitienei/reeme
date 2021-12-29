@@ -44,7 +44,7 @@ import com.atitienei_daniel.reeme.presentation.theme.DarkBlue800
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.components.StaggeredVerticalGrid
 import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
-import com.atitienei_daniel.reeme.presentation.utils.stringToColor
+import com.atitienei_daniel.reeme.presentation.utils.intToColor
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.launch
 
@@ -451,7 +451,7 @@ private fun ReminderCard(
     reminder: Reminder
 ) {
     Card(
-        backgroundColor = stringToColor(reminder.color),
+        backgroundColor = intToColor(reminder.color),
         onClick = { /*TODO*/ },
         elevation = 5.dp
     ) {

@@ -11,6 +11,6 @@ data class Reminder(
     val pinned: Boolean = false,
     val repeat: Int = 0,
     val timestamp: Timestamp = Timestamp.now(),
-    val color: String = "",
+    val color: Int = 0,
     val categories: List<String> = emptyList()
 ) : Parcelable

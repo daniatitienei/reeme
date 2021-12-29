@@ -3,7 +3,11 @@ package com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,6 +36,7 @@ import com.google.accompanist.flowlayout.FlowRow
 import com.google.firebase.Timestamp
 import java.util.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalMaterialApi
 @Composable
 fun CreateReminderScreen(
@@ -95,18 +100,47 @@ fun CreateReminderScreen(
     }
 
     var repeat by remember {
-        mutableStateOf("")
+        mutableStateOf(RepeatType.UNSELECTED)
     }
 
     var showRepeatDropdownMenu by remember {
         mutableStateOf(false)
     }
 
+    var year by remember {
+        mutableStateOf(0)
+    }
+
+    var month by remember {
+        mutableStateOf(0)
+    }
+
+    var day by remember {
+        mutableStateOf(0)
+    }
+
+    var hours by remember {
+        mutableStateOf(0)
+    }
+
+    var minutes by remember {
+        mutableStateOf(0)
+    }
+
+    var timestamp by remember {
+        mutableStateOf(Timestamp(Date()))
+    }
+
+
     if (showDatePicker)
         ShowDatePicker(
             context = context,
-            onDatePicked = {
-                date = it
+            onDatePicked = { newDate, newYear, newMonth, newDayOfMonth ->
+                date = newDate
+                year = newYear
+                month = newMonth
+                day = newDayOfMonth
+
                 showDatePicker = false
                 showTimePicker = true
             },
@@ -118,8 +152,18 @@ fun CreateReminderScreen(
     if (showTimePicker)
         ShowTimePicker(
             context = context,
-            onTimePicked = {
-                time = it
+            onTimePicked = { newTime, hrs, mins ->
+                time = newTime
+                hours = hrs
+                minutes = mins
+
+                val calendar = Calendar.getInstance()
+                calendar.set(year, month, day, hours, minutes)
+
+                timestamp = Timestamp(calendar.time)
+
+                Log.d("Timestamp", timestamp.toString())
+
                 showTimePicker = false
             },
             onDismissRequest = {
@@ -155,16 +199,16 @@ fun CreateReminderScreen(
                     onClick = {
                         viewModel.createReminder(
                             Reminder(
-                                title = "Programez",
-                                description = "Trebuie sa rezolv buguri",
-                                color = Yellow900.hashCode().toString(),
+                                title = title,
+                                description = description,
+                                color = colors[selectedColorIndex].hashCode(),
                                 categories = listOf("Programming", "Work"),
-                                pinned = false,
-                                repeat = 0,
-                                timestamp = Timestamp(Date())
+                                pinned = isPinned,
+                                repeat = repeat.ordinal,
+                                timestamp = timestamp
                             )
                         )
-                              },
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(text = "Create", color = MaterialTheme.colors.primary)
@@ -186,7 +230,8 @@ fun CreateReminderScreen(
                 DetailsOutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    placeholder = "Enter title"
+                    placeholder = "Enter title",
+                    errorMessage = viewModel.titleError.value
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -233,7 +278,14 @@ fun CreateReminderScreen(
 
                 Column {
                     OutlinedPicker(
-                        value = repeat,
+                        value = when (repeat) {
+                            RepeatType.ONCE -> "Once"
+                            RepeatType.DAILY -> "Daily"
+                            RepeatType.WEEKLY -> "Weekly"
+                            RepeatType.MONTHLY -> "Monthly"
+                            RepeatType.YEARLY -> "Yearly"
+                            else -> ""
+                        },
                         placeholder = "Repeat",
                         trailingIcon = Icons.Outlined.Repeat,
                         onClick = { showRepeatDropdownMenu = true }
@@ -244,28 +296,35 @@ fun CreateReminderScreen(
                         onDismissRequest = { showRepeatDropdownMenu = false }
                     ) {
                         DropdownMenuItem(onClick = {
-                            repeat = "Once"
+                            repeat = RepeatType.ONCE
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Once")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = "Daily"
+                            repeat = RepeatType.DAILY
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Daily")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = "Monthly"
+                            repeat = RepeatType.WEEKLY
+                            showRepeatDropdownMenu = false
+                        }) {
+                            Text(text = "Weekly")
+                        }
+
+                        DropdownMenuItem(onClick = {
+                            repeat = RepeatType.MONTHLY
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Monthly")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = "Yearly"
+                            repeat = RepeatType.YEARLY
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Yearly")
@@ -289,6 +348,15 @@ fun CreateReminderScreen(
             )
         }
     }
+}
+
+enum class RepeatType {
+    ONCE,
+    DAILY,
+    WEEKLY,
+    MONTHLY,
+    YEARLY,
+    UNSELECTED
 }
 
 @ExperimentalMaterialApi
@@ -384,20 +452,35 @@ private fun Pinned(
 private fun DetailsOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String
+    placeholder: String,
+    errorMessage: String? = null
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = {
+    Column(
+        modifier = Modifier.animateContentSize()
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    style = MaterialTheme.typography.body2,
+                    color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
+                )
+            },
+            textStyle = MaterialTheme.typography.body2,
+            isError = !errorMessage.isNullOrEmpty()
+        )
+
+        if (!errorMessage.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = placeholder,
-                style = MaterialTheme.typography.body2,
-                color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
+                text = errorMessage,
+                fontSize = MaterialTheme.typography.caption.fontSize,
+                color = Red900
             )
-        },
-        textStyle = MaterialTheme.typography.body2
-    )
+        }
+    }
 }
 
 @Composable
@@ -469,7 +552,7 @@ private fun SelectReminderCardColor(
 @Composable
 fun ShowDatePicker(
     context: Context,
-    onDatePicked: (String) -> Unit,
+    onDatePicked: (String, Int, Int, Int) -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val calendar = Calendar.getInstance()
@@ -481,7 +564,17 @@ fun ShowDatePicker(
     val datePickerDialog = DatePickerDialog(
         context,
         { _, yearValue, monthValue, dayOfMonth ->
-            onDatePicked("$dayOfMonth/${monthValue + 1}/$yearValue")
+            onDatePicked(
+                "${"$dayOfMonth".padStart(2, '0')}/${
+                    "${monthValue + 1}".padStart(
+                        2,
+                        '0'
+                    )
+                }/$yearValue",
+                yearValue,
+                monthValue,
+                dayOfMonth
+            )
         }, year, month, day
     )
 
@@ -495,7 +588,7 @@ fun ShowDatePicker(
 @Composable
 fun ShowTimePicker(
     context: Context,
-    onTimePicked: (String) -> Unit,
+    onTimePicked: (String, Int, Int) -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val calendar = Calendar.getInstance()
@@ -505,7 +598,11 @@ fun ShowTimePicker(
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hourOfDay, minuteValue ->
-            onTimePicked("$hourOfDay:$minuteValue")
+            onTimePicked(
+                "${"$hourOfDay".padStart(2, '0')}:${"$minuteValue".padStart(2, '0')}",
+                hourOfDay,
+                minuteValue
+            )
         }, hour, minute, false
     )
 
