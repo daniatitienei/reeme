@@ -25,6 +25,8 @@ class CreateReminderViewModel @Inject constructor(
             return
         }
 
+
+
         firestore.collection("users/${auth.currentUser?.uid}/reminders")
             .add(
                 hashMapOf(

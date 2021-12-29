@@ -108,23 +108,23 @@ fun CreateReminderScreen(
     }
 
     var year by remember {
-        mutableStateOf(0)
+        mutableStateOf<Int?>(null)
     }
 
     var month by remember {
-        mutableStateOf(0)
+        mutableStateOf<Int?>(null)
     }
 
     var day by remember {
-        mutableStateOf(0)
+        mutableStateOf<Int?>(null)
     }
 
     var hours by remember {
-        mutableStateOf(0)
+        mutableStateOf<Int?>(null)
     }
 
     var minutes by remember {
-        mutableStateOf(0)
+        mutableStateOf<Int?>(null)
     }
 
     var timestamp by remember {
@@ -158,7 +158,7 @@ fun CreateReminderScreen(
                 minutes = mins
 
                 val calendar = Calendar.getInstance()
-                calendar.set(year, month, day, hours, minutes)
+                calendar.set(year!!, month!!, day!!, hours!!, minutes!!)
 
                 timestamp = Timestamp(calendar.time)
 
@@ -197,17 +197,18 @@ fun CreateReminderScreen(
 
                 TextButton(
                     onClick = {
-                        viewModel.createReminder(
-                            Reminder(
-                                title = title,
-                                description = description,
-                                color = colors[selectedColorIndex].hashCode(),
-                                categories = listOf("Programming", "Work"),
-                                pinned = isPinned,
-                                repeat = repeat.ordinal,
-                                timestamp = timestamp
+                        if (year != null && month != null && day != null && hours != null && minutes != null)
+                            viewModel.createReminder(
+                                Reminder(
+                                    title = title,
+                                    description = description,
+                                    color = colors[selectedColorIndex].hashCode(),
+                                    categories = listOf("Programming", "Work"),
+                                    pinned = isPinned,
+                                    repeat = repeat.ordinal,
+                                    timestamp = timestamp
+                                )
                             )
-                        )
                     },
                     modifier = Modifier.weight(1f)
                 ) {

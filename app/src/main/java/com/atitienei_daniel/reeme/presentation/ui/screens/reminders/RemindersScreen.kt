@@ -47,6 +47,8 @@ import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
 import com.atitienei_daniel.reeme.presentation.utils.intToColor
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 @ExperimentalComposeUiApi
 @ExperimentalMaterialApi
@@ -57,6 +59,9 @@ fun RemindersScreen(
     viewModel: RemindersViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.value
+
+    val upcomingReminders = state.filter { reminder -> !reminder.pinned }
+    val pinnedReminders = state.filter { reminder -> reminder.pinned }
 
     val scrollState = rememberScrollState()
 
@@ -216,14 +221,35 @@ fun RemindersScreen(
                         }
                     }
 
-                    /*TODO Make it better*/
-                    if (state.isNotEmpty()) {
+                    if (pinnedReminders.isNotEmpty()) {
+                        Text(text = "Pinned")
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        StaggeredVerticalGrid {
+                            repeat(pinnedReminders.size) {
+                                Box(
+                                    modifier = Modifier.padding(
+                                        start = if (it % 2 != 0) 5.dp else 0.dp,
+                                        end = if (it % 2 != 0) 0.dp else 5.dp,
+                                        bottom = 10.dp
+                                    )
+                                ) {
+                                    ReminderCard(reminder = state[it])
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+
+                    if (upcomingReminders.isNotEmpty()) {
                         Text(text = "Upcoming")
 
                         Spacer(modifier = Modifier.height(10.dp))
 
                         StaggeredVerticalGrid {
-                            repeat(state.size) {
+                            repeat(upcomingReminders.size) {
                                 Box(
                                     modifier = Modifier.padding(
                                         start = if (it % 2 != 0) 5.dp else 0.dp,
@@ -271,7 +297,6 @@ private fun CreateCategoryAlertDialog(
 
                 Spacer(modifier = Modifier.height(15.dp))
 
-                /* TODO Add done imeAction */
                 OutlinedTextField(
                     value = categoryTitleValue,
                     onValueChange = onValueChange,
@@ -467,30 +492,40 @@ private fun ReminderCard(
 
             Spacer(modifier = Modifier.height(5.dp))
 
-            Text(
-                text = reminder.description ?: "",
-                style = MaterialTheme.typography.body2,
-            )
+            if (!reminder.description.isNullOrEmpty()) {
+                Text(
+                    text = reminder.description,
+                    style = MaterialTheme.typography.body2,
+                )
 
-            Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+            }
 
             Box(
                 modifier = Modifier
                     .border(
-                        width = 0.5.dp,
+                        width = 1.dp,
                         color = MaterialTheme.colors.primary,
                         shape = RoundedCornerShape(5.dp)
                     )
                     .padding(5.dp)
             ) {
                 Text(
-                    text = reminder.timestamp.toDate().toString(),
-                    fontWeight = FontWeight.Light,
+                    text = "${
+                        reminder.timestamp.toDate().dateToString("yyyy.MM.dd a")
+                    } at ${reminder.timestamp.toDate().dateToString("HH:mm:ss")}",
+//                    fontWeight = FontWeight.Light,
                     style = MaterialTheme.typography.body2
                 )
             }
         }
     }
+}
+
+private fun Date.dateToString(format: String): String {
+    val dateFormatter = java.text.SimpleDateFormat(format, Locale.getDefault())
+
+    return dateFormatter.format(this)
 }
 
 @ExperimentalComposeUiApi
