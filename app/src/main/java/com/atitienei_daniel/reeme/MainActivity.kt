@@ -11,7 +11,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
-import com.atitienei_daniel.reeme.presentation.Navigation
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.squareup.moshi.Moshi
@@ -25,7 +24,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject lateinit var moshi: Moshi
+    @Inject
+    lateinit var moshi: Moshi
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +42,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Navigation(moshi = moshi)
+
             }
         }
     }

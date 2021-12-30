@@ -1,4 +1,4 @@
-package com.atitienei_daniel.reeme.presentation
+package com.atitienei_daniel.reeme
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -34,7 +34,6 @@ fun Navigation(
     Scaffold(
         backgroundColor = MaterialTheme.colors.background
     ) {
-
         AnimatedNavHost(
             navController = navController,
             startDestination = Screens.Reminders.route
@@ -102,7 +101,7 @@ fun Navigation(
             ) { backStackEntry ->
                 val reminderJson = backStackEntry.arguments?.getString("reminder")
                 val jsonAdapter = moshi.adapter(Reminder::class.java).lenient()
-                val reminderObject = jsonAdapter.fromJson(reminderJson)
+                val reminderObject = jsonAdapter.fromJson(reminderJson!!)
 
                 EditReminderScreen(navController = navController, reminder = reminderObject!!)
             }

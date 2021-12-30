@@ -21,6 +21,5 @@ class CreateReminderViewModel @Inject constructor(
             _titleError.value = "Title must be completed."
             return
         }
-        /*TODO*/
     }
 }
