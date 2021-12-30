@@ -1,9 +1,12 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
-import android.content.Context
+import android.os.Build
+import android.util.Log
+import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderViewModel
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,20 +21,28 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.presentation.theme.*
+import com.atitienei_daniel.reeme.presentation.ui.utils.ShowDatePicker
+import com.atitienei_daniel.reeme.presentation.ui.utils.ShowTimePicker
 import com.google.accompanist.flowlayout.FlowRow
 import java.util.*
 
+@ExperimentalAnimationApi
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalMaterialApi
 @Composable
-fun CreateReminderScreen(navController: NavController) {
+fun CreateReminderScreen(
+    navController: NavHostController,
+    viewModel: CreateReminderViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -39,9 +50,10 @@ fun CreateReminderScreen(navController: NavController) {
         Red900,
         Blue900,
         Yellow900,
-        Magenta900,
+        Purple900,
         Orange900,
-        Lime900
+        Lime900,
+        Pink900
     )
 
     val categories = listOf(
@@ -89,18 +101,43 @@ fun CreateReminderScreen(navController: NavController) {
     }
 
     var repeat by remember {
-        mutableStateOf("")
+        mutableStateOf(RepeatType.UNSELECTED)
     }
 
     var showRepeatDropdownMenu by remember {
         mutableStateOf(false)
     }
 
+    var year by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var month by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var day by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var hours by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var minutes by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+
     if (showDatePicker)
         ShowDatePicker(
             context = context,
-            onDatePicked = {
-                date = it
+            onDatePicked = { newDate, newYear, newMonth, newDayOfMonth ->
+                date = newDate
+                year = newYear
+                month = newMonth
+                day = newDayOfMonth
+
                 showDatePicker = false
                 showTimePicker = true
             },
@@ -112,8 +149,14 @@ fun CreateReminderScreen(navController: NavController) {
     if (showTimePicker)
         ShowTimePicker(
             context = context,
-            onTimePicked = {
-                time = it
+            onTimePicked = { newTime, hrs, mins ->
+                time = newTime
+                hours = hrs
+                minutes = mins
+
+                val calendar = Calendar.getInstance()
+                calendar.set(year!!, month!!, day!!, hours!!, minutes!!)
+
                 showTimePicker = false
             },
             onDismissRequest = {
@@ -124,7 +167,8 @@ fun CreateReminderScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                backgroundColor = MaterialTheme.colors.background
+                backgroundColor = MaterialTheme.colors.background,
+                elevation = 0.dp
             ) {
                 Text(
                     text = "Create reminder",
@@ -142,10 +186,37 @@ fun CreateReminderScreen(navController: NavController) {
                     onClick = { navController.popBackStack() },
                     modifier = Modifier.weight(1f)
                 ) {
+                    Icon(
+                        Icons.Rounded.Close,
+                        contentDescription = null,
+                        tint = MaterialTheme.colors.primary.copy(0.6f)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(text = "Cancel", color = MaterialTheme.colors.primary.copy(0.6f))
                 }
 
-                TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
+                TextButton(
+                    onClick = {
+                        if (year != null && month != null && day != null && hours != null && minutes != null)
+                            viewModel.createReminder(
+                                Reminder(
+                                    title = title,
+                                    description = description,
+                                    color = colors[selectedColorIndex].hashCode(),
+                                    categories = listOf("Programming", "Work"),
+                                    isPinned = isPinned,
+                                    repeat = repeat.ordinal,
+                                )
+                            )
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        Icons.Rounded.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colors.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(text = "Create", color = MaterialTheme.colors.primary)
                 }
             }
@@ -165,7 +236,8 @@ fun CreateReminderScreen(navController: NavController) {
                 DetailsOutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    placeholder = "Enter title"
+                    placeholder = "Enter title",
+                    errorMessage = viewModel.titleError.value
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -212,7 +284,14 @@ fun CreateReminderScreen(navController: NavController) {
 
                 Column {
                     OutlinedPicker(
-                        value = repeat,
+                        value = when (repeat) {
+                            RepeatType.ONCE -> "Once"
+                            RepeatType.DAILY -> "Daily"
+                            RepeatType.WEEKLY -> "Weekly"
+                            RepeatType.MONTHLY -> "Monthly"
+                            RepeatType.YEARLY -> "Yearly"
+                            else -> ""
+                        },
                         placeholder = "Repeat",
                         trailingIcon = Icons.Outlined.Repeat,
                         onClick = { showRepeatDropdownMenu = true }
@@ -223,28 +302,35 @@ fun CreateReminderScreen(navController: NavController) {
                         onDismissRequest = { showRepeatDropdownMenu = false }
                     ) {
                         DropdownMenuItem(onClick = {
-                            repeat = "Once"
+                            repeat = RepeatType.ONCE
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Once")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = "Daily"
+                            repeat = RepeatType.DAILY
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Daily")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = "Monthly"
+                            repeat = RepeatType.WEEKLY
+                            showRepeatDropdownMenu = false
+                        }) {
+                            Text(text = "Weekly")
+                        }
+
+                        DropdownMenuItem(onClick = {
+                            repeat = RepeatType.MONTHLY
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Monthly")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = "Yearly"
+                            repeat = RepeatType.YEARLY
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Yearly")
@@ -268,6 +354,15 @@ fun CreateReminderScreen(navController: NavController) {
             )
         }
     }
+}
+
+private enum class RepeatType {
+    ONCE,
+    DAILY,
+    WEEKLY,
+    MONTHLY,
+    YEARLY,
+    UNSELECTED
 }
 
 @ExperimentalMaterialApi
@@ -363,20 +458,35 @@ private fun Pinned(
 private fun DetailsOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String
+    placeholder: String,
+    errorMessage: String? = null
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = {
+    Column(
+        modifier = Modifier.animateContentSize()
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    style = MaterialTheme.typography.body2,
+                    color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
+                )
+            },
+            textStyle = MaterialTheme.typography.body2,
+            isError = !errorMessage.isNullOrEmpty()
+        )
+
+        if (!errorMessage.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = placeholder,
-                style = MaterialTheme.typography.body2,
-                color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
+                text = errorMessage,
+                fontSize = MaterialTheme.typography.caption.fontSize,
+                color = Red900
             )
-        },
-        textStyle = MaterialTheme.typography.body2
-    )
+        }
+    }
 }
 
 @Composable
@@ -443,54 +553,4 @@ private fun SelectReminderCardColor(
             }
         }
     }
-}
-
-@Composable
-fun ShowDatePicker(
-    context: Context,
-    onDatePicked: (String) -> Unit,
-    onDismissRequest: () -> Unit
-) {
-    val calendar = Calendar.getInstance()
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH)
-    val day = calendar.get(Calendar.DAY_OF_MONTH)
-    calendar.time = Date()
-
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, yearValue, monthValue, dayOfMonth ->
-            onDatePicked("$dayOfMonth/${monthValue + 1}/$yearValue")
-        }, year, month, day
-    )
-
-    datePickerDialog.setOnDismissListener {
-        onDismissRequest()
-    }
-
-    datePickerDialog.show()
-}
-
-@Composable
-fun ShowTimePicker(
-    context: Context,
-    onTimePicked: (String) -> Unit,
-    onDismissRequest: () -> Unit
-) {
-    val calendar = Calendar.getInstance()
-    val hour = calendar[Calendar.HOUR_OF_DAY]
-    val minute = calendar[Calendar.MINUTE]
-
-    val timePickerDialog = TimePickerDialog(
-        context,
-        { _, hourOfDay, minuteValue ->
-            onTimePicked("$hourOfDay:$minuteValue")
-        }, hour, minute, false
-    )
-
-    timePickerDialog.setOnDismissListener {
-        onDismissRequest()
-    }
-
-    timePickerDialog.show()
 }

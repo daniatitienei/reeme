@@ -1,6 +1,9 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.reminders
 
+import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.RemindersViewModel
 import androidx.compose.animation.Crossfade
+import androidx.navigation.NavHostController
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -18,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,53 +30,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.atitienei_daniel.reeme.R
+import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.presentation.theme.DarkBlue800
-import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.components.StaggeredVerticalGrid
-import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
+import com.atitienei_daniel.reeme.presentation.utils.Screens
+import com.atitienei_daniel.reeme.presentation.utils.intToColor
 import com.google.accompanist.flowlayout.FlowRow
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.launch
 
+@ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
 fun RemindersScreen(
-    navController: NavController
+    navController: NavHostController,
+    viewModel: RemindersViewModel = hiltViewModel(),
+    moshi: Moshi
 ) {
+    val state = viewModel.state.value
+
+    val upcomingReminders = state.filter { reminder -> !reminder.isPinned }
+    val pinnedReminders = state.filter { reminder -> reminder.isPinned }
+    val completedReminders = state.filter { reminder -> reminder.isDone }
+
     val scrollState = rememberScrollState()
-
-    val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberBottomSheetState(
-            initialValue = BottomSheetValue.Collapsed
-        )
-    )
-
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     val scope = rememberCoroutineScope()
 
-    var isDialogOpened by remember {
-        mutableStateOf(false)
-    }
-
     var isFilterOpened by remember {
         mutableStateOf(false)
-    }
-
-    var newCategoryTitle by remember {
-        mutableStateOf("")
     }
 
     var searchBarValue by remember {
@@ -91,17 +87,6 @@ fun RemindersScreen(
 
     val backdropState = rememberBackdropScaffoldState(initialValue = BackdropValue.Concealed)
 
-    if (isDialogOpened)
-        CreateCategoryAlertDialog(
-            categoryTitleValue = newCategoryTitle,
-            onValueChange = { newCategoryTitle = it },
-            onDismissRequest = { isDialogOpened = false },
-            onCreateCategoryButtonClick = { /*TODO*/ },
-            onDone = {
-                keyboardController?.hide()
-            }
-        )
-
     BackdropScaffold(
         scaffoldState = backdropState,
         appBar = {
@@ -111,8 +96,7 @@ fun RemindersScreen(
                 if (isConcealed)
                     TopBar(
                         title = "Reminders",
-                        angle = rotationAngle,
-                        onMenuIconClick = { /*TODO*/ },
+                        onSettingsIconClick = { /*TODO*/ },
                         onSearchIconClick = {
                             scope.launch {
                                 backdropState.reveal()
@@ -164,11 +148,8 @@ fun RemindersScreen(
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = {
-                                navController.navigate(Screens.CreateReminder.route) {
-                                    launchSingleTop = true
-                                }
-                            scope.launch {
-                                bottomSheetScaffoldState.bottomSheetState.expand()
+                            navController.navigate(Screens.CreateReminder.route) {
+                                launchSingleTop = true
                             }
                         }
                     ) {
@@ -180,62 +161,144 @@ fun RemindersScreen(
                     modifier = Modifier
                         .padding(horizontal = 15.dp, vertical = 15.dp)
                         .verticalScroll(scrollState)
+                        .animateContentSize()
                 ) {
-                    Column(
-                        modifier = Modifier.animateContentSize()
-                    ) {
-                        if (isFilterOpened) {
-                            Text(text = "Filters")
-
-                            FlowRow(
-                                mainAxisSpacing = 10.dp
+                    Crossfade(targetState = isFilterOpened) {
+                        if (it)
+                            Column(
+                                modifier = Modifier.animateContentSize()
                             ) {
-                                repeat(10) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Checkbox(
-                                            checked = false,
-                                            onCheckedChange = { /*TODO*/ })
-                                        Text(
-                                            text = "Work $it",
-                                            style = MaterialTheme.typography.body2
-                                        )
+
+                                Text(text = "Filters")
+
+                                FlowRow(
+                                    mainAxisSpacing = 10.dp
+                                ) {
+                                    repeat(10) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Checkbox(
+                                                checked = false,
+                                                onCheckedChange = { /*TODO*/ })
+                                            Text(
+                                                text = "Work $it",
+                                                style = MaterialTheme.typography.body2
+                                            )
+                                        }
                                     }
                                 }
+
+                                Spacer(modifier = Modifier.height(15.dp))
                             }
 
-                            Spacer(modifier = Modifier.height(15.dp))
+                    }
+                    if (pinnedReminders.isNotEmpty()) {
+                        Text(text = "Pinned")
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        StaggeredVerticalGrid {
+                            repeat(pinnedReminders.size) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(bottom = 10.dp, start = 5.dp, end = 5.dp)
+                                        .fillMaxWidth()
+                                        .wrapContentWidth(align = Alignment.CenterHorizontally)
+                                ) {
+                                    ReminderCard(
+                                        reminder = pinnedReminders[it],
+                                        onClick = {
+                                            val jsonAdapter =
+                                                moshi.adapter(Reminder::class.java).lenient()
+                                            val reminderJson =
+                                                jsonAdapter.toJson(pinnedReminders[it])
+
+                                            navController.navigate(
+                                                Screens.EditReminder.route.replace(
+                                                    "{reminder}",
+                                                    reminderJson
+                                                )
+                                            ) {
+                                                launchSingleTop = true
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+
+                    if (upcomingReminders.isNotEmpty()) {
+                        Text(text = "Upcoming")
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        StaggeredVerticalGrid {
+                            repeat(upcomingReminders.size) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(bottom = 10.dp, start = 5.dp, end = 5.dp)
+                                        .fillMaxWidth()
+                                        .wrapContentWidth(align = Alignment.CenterHorizontally)
+                                ) {
+                                    ReminderCard(
+                                        reminder = upcomingReminders[it],
+                                        onClick = {
+                                            val jsonAdapter =
+                                                moshi.adapter(Reminder::class.java).lenient()
+                                            val reminderJson =
+                                                jsonAdapter.toJson(upcomingReminders[it])
+
+                                            navController.navigate(
+                                                Screens.EditReminder.route.replace(
+                                                    "{reminder}",
+                                                    reminderJson
+                                                )
+                                            ) {
+                                                launchSingleTop = true
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
 
-                    Text(text = "Upcoming")
+                    if (completedReminders.isNotEmpty()) {
+                        Text(text = "Completed")
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                    StaggeredVerticalGrid {
-                        repeat(18) {
-                            Box(
-                                modifier = Modifier.padding(
-                                    start = if (it % 2 != 0) 5.dp else 0.dp,
-                                    end = if (it % 2 != 0) 0.dp else 5.dp,
-                                    bottom = 10.dp
-                                )
-                            ) {
-                                if (it % 3 != 0)
+                        StaggeredVerticalGrid {
+                            repeat(completedReminders.size) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(bottom = 10.dp, start = 5.dp, end = 5.dp)
+                                        .fillMaxWidth()
+                                        .wrapContentWidth(align = Alignment.CenterHorizontally)
+                                ) {
                                     ReminderCard(
-                                        color = Color(0xffD2F49B),
-                                        title = "Take a pill",
-                                        description = "Lorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsumLorem ipsum lorem ipsum lorem ipsum",
-                                        time = "Tommorow, 4:20"
+                                        reminder = completedReminders[it],
+                                        onClick = {
+                                            val jsonAdapter =
+                                                moshi.adapter(Reminder::class.java).lenient()
+                                            val reminderJson =
+                                                jsonAdapter.toJson(completedReminders[it])
+
+                                            navController.navigate(
+                                                Screens.EditReminder.route.replace(
+                                                    "{reminder}",
+                                                    reminderJson
+                                                )
+                                            ) {
+                                                launchSingleTop = true
+                                            }
+                                        }
                                     )
-                                else
-                                    ReminderCard(
-                                        color = Color(0xffF49B9B),
-                                        title = "Take a pill",
-                                        description = "Lorem ipsum lorem ipsum lorem ipsum",
-                                        time = "Tommorow, 4:20"
-                                    )
+                                }
                             }
                         }
                     }
@@ -274,7 +337,6 @@ private fun CreateCategoryAlertDialog(
 
                 Spacer(modifier = Modifier.height(15.dp))
 
-                /* TODO Add done imeAction */
                 OutlinedTextField(
                     value = categoryTitleValue,
                     onValueChange = onValueChange,
@@ -304,24 +366,14 @@ private fun CreateCategoryAlertDialog(
 
 @Composable
 private fun TopBar(
-    onMenuIconClick: () -> Unit,
+    onSettingsIconClick: () -> Unit,
     onSearchIconClick: () -> Unit,
     onFilterIconClick: () -> Unit,
     isFilterOpened: Boolean,
-    angle: Float,
     title: String
 ) {
     TopAppBar(
         title = { Text(text = title) },
-        navigationIcon = {
-            IconButton(onClick = onMenuIconClick) {
-                Icon(
-                    Icons.Rounded.Menu,
-                    contentDescription = null,
-                    modifier = Modifier.rotate(angle)
-                )
-            }
-        },
         actions = {
             IconButton(onClick = onSearchIconClick) {
                 Icon(Icons.Rounded.Search, contentDescription = null)
@@ -337,6 +389,10 @@ private fun TopBar(
                             contentDescription = null
                         )
                 }
+            }
+
+            IconButton(onClick = onSettingsIconClick) {
+                Icon(Icons.Outlined.Settings, contentDescription = null)
             }
         },
         backgroundColor = MaterialTheme.colors.background,
@@ -450,160 +506,61 @@ private fun SearchTopBar(
 
 @ExperimentalMaterialApi
 @Composable
-private fun CategoriesListModal(
-    openCreateCategoryDialog: () -> Unit,
-) {
-    val checkedList = remember {
-        mutableStateListOf<Int>()
-    }
-
-    Box {
-        LazyColumn {
-            item {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 30.dp)
-                        .padding(top = 20.dp, bottom = 10.dp)
-                ) {
-                    Text(text = "Categories", style = MaterialTheme.typography.h6)
-                }
-            }
-            items(8) { index ->
-                var isChecked by remember {
-                    mutableStateOf(false)
-                }
-
-                CategoryListItem(
-                    isChecked = isChecked,
-                    onCheckedClick = { newValue ->
-                        isChecked = newValue
-
-                        if (isChecked)
-                            checkedList.add(index)
-                        else
-                            checkedList.remove(index)
-                    },
-                    categoryName = "Work",
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.padding(bottom = 55.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 30.dp)
-                        .padding(bottom = 15.dp)
-                ) {
-                    Button(
-                        onClick = openCreateCategoryDialog,
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(vertical = 10.dp)
-                    ) {
-                        Text(
-                            text = if (checkedList.isEmpty()) "Create new category" else "Continue",
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@ExperimentalMaterialApi
-@Composable
-private fun CategoryListItem(
-    isChecked: Boolean,
-    onCheckedClick: (Boolean) -> Unit,
-    categoryName: String,
-) {
-    Box(
-        modifier = Modifier.clickable {
-            onCheckedClick(!isChecked)
-        }
-    ) {
-        ListItem(
-            icon = {
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = onCheckedClick
-                )
-            },
-            text = {
-                Text(text = categoryName)
-            }
-        )
-    }
-}
-
-@ExperimentalMaterialApi
-@Composable
 private fun ReminderCard(
-    color: Color,
-    title: String,
-    description: String,
-    time: String
+    reminder: Reminder,
+    onClick: () -> Unit
 ) {
     Card(
-        backgroundColor = color,
-        onClick = { /*TODO*/ }
+        backgroundColor = intToColor(reminder.color),
+        onClick = onClick,
+        elevation = 5.dp
     ) {
         Column(
             modifier = Modifier.padding(15.dp)
         ) {
-            Text(text = title, style = MaterialTheme.typography.h6)
+            Text(
+                text = reminder.title,
+                style = MaterialTheme.typography.h6,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.height(5.dp))
 
-            Text(
-                text = description,
-                style = MaterialTheme.typography.body2,
-                fontWeight = FontWeight.Light
-            )
+            if (!reminder.description.isNullOrEmpty()) {
+                Text(
+                    text = reminder.description,
+                    style = MaterialTheme.typography.body2,
+                )
 
-            Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+            }
 
             Box(
                 modifier = Modifier
                     .border(
-                        width = 0.5.dp,
+                        width = 1.dp,
                         color = MaterialTheme.colors.primary,
                         shape = RoundedCornerShape(5.dp)
                     )
                     .padding(5.dp)
             ) {
-                Text(
-                    text = time,
-                    fontWeight = FontWeight.Light,
-                    style = MaterialTheme.typography.body2
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "dd/MM/yyyy",
+                        style = MaterialTheme.typography.body2,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "HH:mm a",
+                        style = MaterialTheme.typography.body2,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
-    }
-}
-
-@ExperimentalMaterialApi
-@Preview
-@Composable
-private fun ReminderCardPreview() {
-    ReemeTheme {
-        ReminderCard(
-            color = Color(0xffF49B9B),
-            title = "Take a pill",
-            description = "Lorem ipsum lorem ipsum lorem ipsum",
-            time = "Tommorow, 4:20"
-        )
-    }
-}
-
-@ExperimentalComposeUiApi
-@ExperimentalMaterialApi
-@ExperimentalFoundationApi
-@Preview(showBackground = true)
-@Composable
-private fun RemindersPreview() {
-    ReemeTheme {
-        RemindersScreen(rememberNavController())
     }
 }
