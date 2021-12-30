@@ -1,8 +1,7 @@
-package com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder
+package com.atitienei_daniel.reeme.presentation.ui.screens.edit_reminder
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -25,22 +24,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.presentation.theme.*
 import com.atitienei_daniel.reeme.presentation.ui.utils.ShowDatePicker
 import com.atitienei_daniel.reeme.presentation.ui.utils.ShowTimePicker
+import com.atitienei_daniel.reeme.presentation.utils.intToColor
 import com.google.accompanist.flowlayout.FlowRow
+import androidx.navigation.NavHostController
 import java.util.*
 
 @ExperimentalAnimationApi
-@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalMaterialApi
 @Composable
-fun CreateReminderScreen(
+fun EditReminderScreen(
     navController: NavHostController,
-    viewModel: CreateReminderViewModel = hiltViewModel()
+    reminder: Reminder
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
@@ -68,19 +66,19 @@ fun CreateReminderScreen(
     }
 
     var selectedColorIndex by remember {
-        mutableStateOf(0)
+        mutableStateOf(colors.indexOf(intToColor(reminder.color)))
     }
 
     var title by remember {
-        mutableStateOf("")
+        mutableStateOf(reminder.title)
     }
 
     var description by remember {
-        mutableStateOf("")
+        mutableStateOf(reminder.description)
     }
 
     var isPinned by remember {
-        mutableStateOf(false)
+        mutableStateOf(reminder.isPinned)
     }
 
     var date by remember {
@@ -100,7 +98,7 @@ fun CreateReminderScreen(
     }
 
     var repeat by remember {
-        mutableStateOf(RepeatType.UNSELECTED)
+        mutableStateOf(reminder.repeat)
     }
 
     var showRepeatDropdownMenu by remember {
@@ -127,6 +125,7 @@ fun CreateReminderScreen(
         mutableStateOf<Int?>(null)
     }
 
+    var isDone by remember { mutableStateOf(reminder.isDone) }
 
     if (showDatePicker)
         ShowDatePicker(
@@ -170,7 +169,7 @@ fun CreateReminderScreen(
                 elevation = 0.dp
             ) {
                 Text(
-                    text = "Create reminder",
+                    text = "Edit reminder",
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.h6,
                     modifier = Modifier.fillMaxWidth()
@@ -191,32 +190,49 @@ fun CreateReminderScreen(
                         tint = MaterialTheme.colors.primary.copy(0.6f)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Cancel", color = MaterialTheme.colors.primary.copy(0.6f))
+                    Text(text = "Close", color = MaterialTheme.colors.primary.copy(0.6f))
                 }
 
                 TextButton(
-                    onClick = {
-                        if (year != null && month != null && day != null && hours != null && minutes != null)
-                            viewModel.createReminder(
-                                Reminder(
-                                    title = title,
-                                    description = description,
-                                    color = colors[selectedColorIndex].hashCode(),
-                                    categories = listOf("Programming", "Work"),
-                                    isPinned = isPinned,
-                                    repeat = repeat.ordinal,
-                                )
-                            )
-                    },
+                    onClick = { /*TODO*/ },
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
-                        Icons.Rounded.Add,
+                        Icons.Rounded.Save,
                         contentDescription = null,
                         tint = MaterialTheme.colors.primary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Create", color = MaterialTheme.colors.primary)
+                    Text(
+                        text = "Save",
+                        color = MaterialTheme.colors.primary
+                    )
+                }
+
+                TextButton(
+                    onClick = { isDone = !isDone },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Crossfade(targetState = isDone) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateContentSize()
+                        ) {
+                            Icon(
+                                if (!it) Icons.Rounded.DoneAll else Icons.Rounded.RemoveDone,
+                                contentDescription = null,
+                                tint = MaterialTheme.colors.primary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (!it) "Done" else "Undone",
+                                color = MaterialTheme.colors.primary
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -236,13 +252,13 @@ fun CreateReminderScreen(
                     value = title,
                     onValueChange = { title = it },
                     placeholder = "Enter title",
-                    errorMessage = viewModel.titleError.value
-                )
+
+                    )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 DetailsOutlinedTextField(
-                    value = description,
+                    value = description ?: "",
                     onValueChange = { description = it },
                     placeholder = "Enter description"
                 )
@@ -284,11 +300,11 @@ fun CreateReminderScreen(
                 Column {
                     OutlinedPicker(
                         value = when (repeat) {
-                            RepeatType.ONCE -> "Once"
-                            RepeatType.DAILY -> "Daily"
-                            RepeatType.WEEKLY -> "Weekly"
-                            RepeatType.MONTHLY -> "Monthly"
-                            RepeatType.YEARLY -> "Yearly"
+                            RepeatType.ONCE.ordinal -> "Once"
+                            RepeatType.DAILY.ordinal -> "Daily"
+                            RepeatType.WEEKLY.ordinal -> "Weekly"
+                            RepeatType.MONTHLY.ordinal -> "Monthly"
+                            RepeatType.YEARLY.ordinal -> "Yearly"
                             else -> ""
                         },
                         placeholder = "Repeat",
@@ -301,35 +317,35 @@ fun CreateReminderScreen(
                         onDismissRequest = { showRepeatDropdownMenu = false }
                     ) {
                         DropdownMenuItem(onClick = {
-                            repeat = RepeatType.ONCE
+                            repeat = RepeatType.ONCE.ordinal
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Once")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = RepeatType.DAILY
+                            repeat = RepeatType.DAILY.ordinal
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Daily")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = RepeatType.WEEKLY
+                            repeat = RepeatType.WEEKLY.ordinal
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Weekly")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = RepeatType.MONTHLY
+                            repeat = RepeatType.MONTHLY.ordinal
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Monthly")
                         }
 
                         DropdownMenuItem(onClick = {
-                            repeat = RepeatType.YEARLY
+                            repeat = RepeatType.YEARLY.ordinal
                             showRepeatDropdownMenu = false
                         }) {
                             Text(text = "Yearly")

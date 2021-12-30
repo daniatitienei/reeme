@@ -8,7 +8,7 @@ fun intToColor(value: Int): Color =
         Red900.hashCode() -> Red900
         Blue900.hashCode() -> Blue900
         Yellow900.hashCode() -> Yellow900
-        Magenta900.hashCode() -> Magenta900
+        Purple900.hashCode() -> Purple900
         Orange900.hashCode() -> Orange900
         else -> Lime900
     }

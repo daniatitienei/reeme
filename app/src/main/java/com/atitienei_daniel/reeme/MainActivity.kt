@@ -1,8 +1,10 @@
 package com.atitienei_daniel.reeme
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
@@ -12,7 +14,9 @@ import androidx.compose.ui.graphics.Color
 import com.atitienei_daniel.reeme.presentation.Navigation
 import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.squareup.moshi.Moshi
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
@@ -20,6 +24,10 @@ import dagger.hilt.android.AndroidEntryPoint
 @ExperimentalAnimationApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var moshi: Moshi
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -33,7 +41,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                Navigation()
+                Navigation(moshi = moshi)
             }
         }
     }

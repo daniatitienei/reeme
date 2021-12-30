@@ -1,5 +1,7 @@
 package com.atitienei_daniel.reeme.presentation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -8,22 +10,25 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
+import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderScreen
-import com.atitienei_daniel.reeme.presentation.ui.screens.login.LoginScreen
-import com.atitienei_daniel.reeme.presentation.ui.screens.on_boarding.OnBoardingScreen
-import com.atitienei_daniel.reeme.presentation.ui.screens.register.RegisterScreen
+import com.atitienei_daniel.reeme.presentation.ui.screens.edit_reminder.EditReminderScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.RemindersScreen
-import com.atitienei_daniel.reeme.presentation.ui.utils.Screens
+import com.atitienei_daniel.reeme.presentation.utils.Screens
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.squareup.moshi.Moshi
 
+@RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @Composable
-fun Navigation() {
+fun Navigation(
+    moshi: Moshi
+) {
     val navController = rememberAnimatedNavController()
 
     Scaffold(
@@ -34,124 +39,72 @@ fun Navigation() {
             navController = navController,
             startDestination = Screens.Reminders.route
         ) {
-            composable(
-                route = Screens.OnBoardingScreen.route,
-                enterTransition = {
-                    slideInVertically(initialOffsetY = { 1000 }, animationSpec = tween(700)) +
-                            fadeIn()
-                },
-                popEnterTransition = {
-                    slideInVertically(initialOffsetY = { 1000 }, animationSpec = tween(700)) +
-                            fadeIn()
-                },
-                exitTransition = {
-                    slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700)) +
-                            fadeOut()
-                },
-                popExitTransition = {
-                    slideOutVertically(targetOffsetY = { 1000 }, animationSpec = tween(700)) +
-                            fadeOut()
-                }
-            ) {
-                OnBoardingScreen(navController = navController)
-            }
-
-            composable(
-                route = Screens.Register.route,
-                enterTransition = {
-                    when (this.initialState.destination.route) {
-                        Screens.Login.route ->
-                            slideInHorizontally(
-                                initialOffsetX = { -1000 },
-                                animationSpec = tween(700)
-                            ) + fadeIn()
-                        else -> fadeIn(animationSpec = tween(700))
-                    }
-                },
-                popEnterTransition = {
-                    fadeIn(animationSpec = tween(700))
-                },
-                exitTransition = {
-                    when (this.targetState.destination.route) {
-                        Screens.Login.route ->
-                            slideOutHorizontally(
-                                targetOffsetX = { -1000 },
-                                animationSpec = tween(700)
-                            ) + fadeOut()
-                        else -> fadeOut(animationSpec = tween(700))
-                    }
-                },
-                popExitTransition = {
-                    fadeOut(animationSpec = tween(700))
-                }
-            ) {
-                RegisterScreen(navController = navController)
-            }
-
-            composable(
-                route = Screens.Login.route,
-                enterTransition = {
-                    when (this.initialState.destination.route) {
-                        Screens.Register.route ->
-                            slideInHorizontally(
-                                initialOffsetX = { -1000 },
-                                animationSpec = tween(700)
-                            ) + fadeIn()
-                        else -> fadeIn(animationSpec = tween(700))
-                    }
-                },
-                popEnterTransition = {
-                    fadeIn(animationSpec = tween(700))
-                },
-                exitTransition = {
-                    when (this.targetState.destination.route) {
-                        Screens.Register.route ->
-                            slideOutHorizontally(
-                                targetOffsetX = { -1000 },
-                                animationSpec = tween(700)
-                            ) + fadeOut()
-                        else -> fadeOut(animationSpec = tween(700))
-                    }
-                },
-                popExitTransition = {
-                    fadeOut(animationSpec = tween(700))
-                }
-            ) {
-                LoginScreen(navController = navController)
-            }
-
             composable(route = Screens.Reminders.route) {
-                RemindersScreen(navController = navController)
+                RemindersScreen(navController = navController, moshi = moshi)
             }
 
             composable(
                 route = Screens.CreateReminder.route,
                 enterTransition = {
                     slideInHorizontally(
-                        initialOffsetX = { -1000 },
+                        initialOffsetX = { 1000 },
                         animationSpec = tween(700)
                     ) + fadeIn()
                 },
                 popEnterTransition = {
                     slideInHorizontally(
-                        initialOffsetX = { -1000 },
+                        initialOffsetX = { 1000 },
                         animationSpec = tween(700)
                     ) + fadeIn()
                 },
                 exitTransition = {
                     slideOutHorizontally(
-                        targetOffsetX = { -1000 },
+                        targetOffsetX = { 1000 },
                         animationSpec = tween(700)
                     ) + fadeOut()
                 },
                 popExitTransition = {
                     slideOutHorizontally(
-                        targetOffsetX = { -1000 },
+                        targetOffsetX = { 1000 },
                         animationSpec = tween(700)
                     ) + fadeOut()
                 }
             ) {
                 CreateReminderScreen(navController = navController)
+            }
+
+            composable(
+                route = Screens.EditReminder.route,
+                enterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { 1000 },
+                        animationSpec = tween(700)
+                    ) + fadeIn()
+                },
+                popEnterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { 1000 },
+                        animationSpec = tween(700)
+                    ) + fadeIn()
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { 1000 },
+                        animationSpec = tween(700)
+                    ) + fadeOut()
+                },
+                popExitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { 1000 },
+                        animationSpec = tween(700)
+                    ) + fadeOut()
+                }
+            ) { backStackEntry ->
+                val reminderJson = backStackEntry.arguments?.getString("reminder")
+                val jsonAdapter = moshi.adapter(Reminder::class.java).lenient()
+                val reminderObject = jsonAdapter.fromJson(reminderJson)
+
+                EditReminderScreen(navController = navController, reminder = reminderObject!!)
             }
         }
     }
