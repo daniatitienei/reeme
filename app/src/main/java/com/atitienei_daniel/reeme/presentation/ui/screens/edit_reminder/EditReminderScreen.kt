@@ -24,13 +24,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.presentation.theme.*
 import com.atitienei_daniel.reeme.presentation.utils.intToColor
 import com.google.accompanist.flowlayout.FlowRow
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import androidx.navigation.NavHostController
+import com.atitienei_daniel.reeme.data.reminders_db.Reminder
 import com.atitienei_daniel.reeme.presentation.ui.utils.ShowDatePicker
 import com.atitienei_daniel.reeme.presentation.ui.utils.ShowTimePicker
 import java.util.*

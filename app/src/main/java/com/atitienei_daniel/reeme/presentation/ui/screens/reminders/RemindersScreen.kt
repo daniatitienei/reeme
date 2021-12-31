@@ -1,6 +1,5 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.reminders
 
-import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.RemindersViewModel
 import androidx.compose.animation.Crossfade
 import androidx.navigation.NavHostController
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -38,7 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.atitienei_daniel.reeme.R
-import com.atitienei_daniel.reeme.domain.model.Reminder
+import com.atitienei_daniel.reeme.data.reminders_db.Reminder
 import com.atitienei_daniel.reeme.presentation.theme.DarkBlue800
 import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.components.StaggeredVerticalGrid
 import com.atitienei_daniel.reeme.presentation.utils.Screens
@@ -57,7 +56,7 @@ fun RemindersScreen(
     viewModel: RemindersViewModel = hiltViewModel(),
     moshi: Moshi
 ) {
-    val state = viewModel.state.value
+    val state = viewModel.reminders.collectAsState(initial = emptyList()).value
 
     val upcomingReminders = state.filter { reminder -> !reminder.isPinned }
     val pinnedReminders = state.filter { reminder -> reminder.isPinned }

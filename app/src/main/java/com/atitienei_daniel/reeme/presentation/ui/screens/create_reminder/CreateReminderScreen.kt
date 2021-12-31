@@ -1,8 +1,6 @@
 package com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder
 
 import android.os.Build
-import android.util.Log
-import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderViewModel
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
@@ -28,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.atitienei_daniel.reeme.domain.model.Reminder
+import com.atitienei_daniel.reeme.data.reminders_db.Reminder
 import com.atitienei_daniel.reeme.presentation.theme.*
 import com.atitienei_daniel.reeme.presentation.ui.utils.ShowDatePicker
 import com.atitienei_daniel.reeme.presentation.ui.utils.ShowTimePicker
@@ -197,17 +195,15 @@ fun CreateReminderScreen(
 
                 TextButton(
                     onClick = {
-                        if (year != null && month != null && day != null && hours != null && minutes != null)
-                            viewModel.createReminder(
-                                Reminder(
-                                    title = title,
-                                    description = description,
-                                    color = colors[selectedColorIndex].hashCode(),
-                                    categories = listOf("Programming", "Work"),
-                                    isPinned = isPinned,
-                                    repeat = repeat.ordinal,
-                                )
+                        viewModel.addReminder(
+                            Reminder(
+                                title = title,
+                                description = description,
+                                color = colors[selectedColorIndex].hashCode(),
+                                isPinned = isPinned,
+                                repeat = repeat.ordinal,
                             )
+                        )
                     },
                     modifier = Modifier.weight(1f)
                 ) {

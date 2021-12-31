@@ -10,7 +10,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
-import com.atitienei_daniel.reeme.domain.model.Reminder
+import com.atitienei_daniel.reeme.data.reminders_db.Reminder
 import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.edit_reminder.EditReminderScreen
 import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.RemindersScreen
