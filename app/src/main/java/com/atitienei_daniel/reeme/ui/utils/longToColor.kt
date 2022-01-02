@@ -5,7 +5,7 @@ import com.atitienei_daniel.reeme.ui.theme.*
 
 fun longToColor(value: Long): Color =
     when (value) {
-        Red900.value.toLong() -> Red900
+        Red800.value.toLong() -> Red800
         Blue900.value.toLong() -> Blue900
         Yellow900.value.toLong() -> Yellow900
         Purple900.value.toLong() -> Purple900

@@ -30,6 +30,7 @@ import com.atitienei_daniel.reeme.ui.theme.*
 import com.atitienei_daniel.reeme.ui.screens.utils.ShowDatePicker
 import com.atitienei_daniel.reeme.ui.screens.utils.ShowTimePicker
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
+import com.atitienei_daniel.reeme.ui.utils.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.flow.collect
@@ -47,7 +48,7 @@ fun CreateReminderScreen(
     val scrollState = rememberScrollState()
 
     val colors = listOf(
-        Red900,
+        Red800,
         Blue900,
         Yellow900,
         Purple900,
@@ -136,7 +137,9 @@ fun CreateReminderScreen(
         mutableStateOf("")
     }
 
-    val calendar = Calendar.getInstance()
+    val calendar by remember {
+        mutableStateOf(Calendar.getInstance())
+    }
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
@@ -303,7 +306,11 @@ fun CreateReminderScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedPicker(
-                    value = if (date.isNotEmpty() && time.isNotEmpty()) "On $date, at $time" else "",
+                    value = if (date.isNotEmpty() && time.isNotEmpty()) "On ${
+                        calendar.time.dateToString(
+                            "dd/MM/yyyy"
+                        )
+                    }, at ${calendar.time.dateToString("HH:mm")}" else "",
                     placeholder = "Select date and time",
                     trailingIcon = Icons.Rounded.DateRange,
                     onClick = { showDatePicker = true }
@@ -587,7 +594,7 @@ private fun DetailsOutlinedTextField(
             Text(
                 text = errorMessage,
                 fontSize = MaterialTheme.typography.caption.fontSize,
-                color = Red900
+                color = Red800
             )
         }
     }

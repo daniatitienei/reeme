@@ -1,22 +1,20 @@
 package com.atitienei_daniel.reeme.ui.screens.edit_reminder
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.atitienei_daniel.reeme.data.RemindersDataSource
-import com.atitienei_daniel.reeme.domain.model.Reminder
-import com.atitienei_daniel.reeme.ui.theme.Orange900
+import com.atitienei_daniel.reeme.data.datastore.StoreCategories
+import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSource
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
+import com.atitienei_daniel.reeme.ui.utils.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class EditReminderViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val repository: RemindersDataSource
+    private val repository: RemindersDataSource,
+    private val storeCategories: StoreCategories
 ) : ViewModel() {
 
     private var _uiEvent = Channel<UiEvent>()
@@ -43,7 +42,7 @@ class EditReminderViewModel @Inject constructor(
 
     var isDone by mutableStateOf(false)
 
-    var date by mutableStateOf(Calendar.getInstance())
+    var date by mutableStateOf<Calendar>(Calendar.getInstance())
 
     var repeat by mutableStateOf(ReminderRepeatTypes.UNSELECTED)
 
@@ -55,6 +54,8 @@ class EditReminderViewModel @Inject constructor(
         savedStateHandle.get<String>("reminderId")?.let { reminderId ->
             getReminderById(id = reminderId)
         }
+
+        getCategories()
     }
 
     private fun getReminderById(id: String) {
@@ -71,24 +72,55 @@ class EditReminderViewModel @Inject constructor(
                 reminder.categories!!.forEach { category ->
                     selectedCategories.add(category)
                 }
-                date = reminder.date
+                date.time = reminder.date
                 repeat = reminder.repeat
             }
+        }
+    }
 
-            Log.d("reminder_color", (color == Orange900).toString())
+    private fun getCategories() {
+        viewModelScope.launch {
+            storeCategories.getCategories.collect {
+                Log.d("reminder_categories", it.toString())
+            }
+        }
+    }
+
+    fun insertCategory() {
+        viewModelScope.launch {
+            storeCategories.getCategories.collect { categories ->
+                categories?.let {
+                    storeCategories.insertCategory(categories = it)
+                }
+            }
         }
     }
 
     fun onEvent(event: EditReminderEvents) {
         when (event) {
-            is EditReminderEvents.OnCloseClick -> {
+            is EditReminderEvents.OnDeleteClick -> {
+                viewModelScope.launch {
+                    repository.deleteReminderById(reminderId)
+                }
                 sendUiEvent(UiEvent.PopBackStack)
             }
-            is EditReminderEvents.OnCreateCategoryAlertClick -> {
+            is EditReminderEvents.OnCreateCategoryClick -> {
                 sendUiEvent(UiEvent.AlertDialog(isOpen = true))
             }
             is EditReminderEvents.OnCreateCategoryAlertDismiss -> {
                 sendUiEvent(UiEvent.AlertDialog(isOpen = false))
+            }
+            is EditReminderEvents.OnSelectDateClick -> {
+                sendUiEvent(UiEvent.DatePicker(isOpen = true))
+            }
+            is EditReminderEvents.OnSelectDateDismiss -> {
+                sendUiEvent(UiEvent.DatePicker(isOpen = false))
+            }
+            is EditReminderEvents.OnSelectTimeClick -> {
+                sendUiEvent(UiEvent.TimePicker(isOpen = true))
+            }
+            is EditReminderEvents.OnSelectTimeDismiss -> {
+                sendUiEvent(UiEvent.TimePicker(isOpen = false))
             }
             is EditReminderEvents.OnDoneClick -> {
                 isDone = !isDone
@@ -99,7 +131,7 @@ class EditReminderViewModel @Inject constructor(
                             isDone = isDone,
                             isPinned = isPinned,
                             repeat = repeat,
-                            date = date,
+                            date = date!!.time,
                             color = color!!,
                             description = description,
                             categories = selectedCategories,
@@ -116,7 +148,7 @@ class EditReminderViewModel @Inject constructor(
                             isDone = isDone,
                             isPinned = isPinned,
                             repeat = repeat,
-                            date = date,
+                            date = date!!.time,
                             color = color!!,
                             description = description,
                             categories = selectedCategories,
