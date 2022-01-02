@@ -1,4 +1,4 @@
-package com.atitienei_daniel.reeme.data
+package com.atitienei_daniel.reeme.data.reminders_db
 
 import com.atitienei_daniel.reeme.domain.model.Reminder
 import kotlinx.coroutines.flow.Flow

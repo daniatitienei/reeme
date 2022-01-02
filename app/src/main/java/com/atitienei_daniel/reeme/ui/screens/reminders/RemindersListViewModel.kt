@@ -4,11 +4,9 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.atitienei_daniel.reeme.data.RemindersDataSource
-import com.atitienei_daniel.reeme.domain.model.Reminder
+import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSource
 import com.atitienei_daniel.reeme.ui.utils.Routes
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.squareup.moshi.Moshi
@@ -16,7 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import remindersdb.ReminderEntity
 import javax.inject.Inject
 
 @ExperimentalMaterialApi

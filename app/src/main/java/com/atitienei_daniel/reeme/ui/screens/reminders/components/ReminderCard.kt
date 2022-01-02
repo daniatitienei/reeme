@@ -1,5 +1,6 @@
 package com.atitienei_daniel.reeme.ui.screens.reminders.components
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,8 +27,6 @@ fun ReminderCard(
     reminder: ReminderEntity,
     onEvent: (RemindersListEvents) -> Unit
 ) {
-    val date = Date()
-
     Card(
         backgroundColor = reminder.color,
         onClick = {
@@ -70,12 +69,12 @@ fun ReminderCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = date.dateToString("dd/MM/yyyy"),
+                        text = reminder.date.dateToString("dd/MM/yyyy"),
                         style = MaterialTheme.typography.body2,
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        text = date.dateToString("HH:mm a"),
+                        text = reminder.date.dateToString("HH:mm a"),
                         style = MaterialTheme.typography.body2,
                         textAlign = TextAlign.Center
                     )

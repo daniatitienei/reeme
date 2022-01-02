@@ -53,6 +53,10 @@ android {
 }
 
 dependencies {
+    /* Datastore */
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+    implementation "androidx.datastore:datastore-preferences-core:1.0.0"
+
     /* SQLDelight */
     implementation "com.squareup.sqldelight:android-driver:1.5.3"
     implementation "com.squareup.sqldelight:coroutines-extensions:1.5.3"

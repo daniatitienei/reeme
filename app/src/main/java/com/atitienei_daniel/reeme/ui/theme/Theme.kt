@@ -26,5 +26,5 @@ private val lightColors = lightColors(
     onSecondary = Color.White,
     background = Color.White,
     onSurface = DarkBlue800,
-    error = Red900
+    error = Red800
 )

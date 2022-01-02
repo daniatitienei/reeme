@@ -13,7 +13,7 @@ CREATE TABLE ReminderEntity (
     isDone INTEGER AS Boolean NOT NULL,
     color INTEGER AS Color NOT NULL,
     categories TEXT AS List<String>,
-    date INTEGER AS Calendar NOT NULL
+    date INTEGER AS Date NOT NULL
 );
 
 getReminderById:

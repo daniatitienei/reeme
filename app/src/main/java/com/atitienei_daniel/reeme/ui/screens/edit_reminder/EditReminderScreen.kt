@@ -1,6 +1,5 @@
 package com.atitienei_daniel.reeme.ui.screens.edit_reminder
 
-import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
@@ -13,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
@@ -28,12 +28,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.atitienei_daniel.reeme.ui.screens.utils.ShowDatePicker
 import com.atitienei_daniel.reeme.ui.screens.utils.ShowTimePicker
 import com.atitienei_daniel.reeme.ui.theme.*
+import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.flow.collect
-import java.util.*
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -54,6 +54,10 @@ fun EditReminderScreen(
         mutableStateOf(false)
     }
 
+    var isCreateCategoryDialogOpen by remember {
+        mutableStateOf(false)
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -61,7 +65,13 @@ fun EditReminderScreen(
                     onPopBackStack(event)
                 }
                 is UiEvent.AlertDialog -> {
+                    isCreateCategoryDialogOpen = event.isOpen
+                }
+                is UiEvent.DatePicker -> {
                     showDatePicker = event.isOpen
+                }
+                is UiEvent.TimePicker -> {
+                    showTimePicker = event.isOpen
                 }
                 else -> Unit
             }
@@ -71,15 +81,7 @@ fun EditReminderScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    val colors = listOf(
-        Red900,
-        Blue900,
-        Yellow900,
-        Purple900,
-        Orange900,
-        Lime900,
-        Pink900
-    )
+    val colors = Constants.colors
 
     val categories = listOf(
         "Work",
@@ -125,11 +127,11 @@ fun EditReminderScreen(
                 month = newMonth
                 day = newDayOfMonth
 
-                showDatePicker = false
-                showTimePicker = true
+                viewModel.onEvent(EditReminderEvents.OnSelectDateDismiss)
+                viewModel.onEvent(EditReminderEvents.OnSelectTimeClick)
             },
             onDismissRequest = {
-                showDatePicker = false
+                viewModel.onEvent(EditReminderEvents.OnSelectDateDismiss)
             }
         )
 
@@ -140,12 +142,48 @@ fun EditReminderScreen(
                 hours = hrs
                 minutes = mins
 
-                viewModel.date.set(year!!, month!!, day!!, hours!!, minutes!!)
+                viewModel.date?.set(year!!, month!!, day!!, hours!!, minutes!!)
 
-                showTimePicker = false
+                viewModel.onEvent(EditReminderEvents.OnSelectTimeDismiss)
             },
             onDismissRequest = {
-                showTimePicker = false
+                viewModel.onEvent(EditReminderEvents.OnSelectTimeDismiss)
+            }
+        )
+
+    if (isCreateCategoryDialogOpen)
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.onEvent(
+                    EditReminderEvents.OnCreateCategoryAlertDismiss
+                )
+            },
+            buttons = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth(align = Alignment.CenterHorizontally)
+                ) {
+                    Text(text = "Create reminder")
+                }
+
+                OutlinedTextField(
+                    value = "newCategoryTitle",
+                    onValueChange = { },
+                    placeholder = {
+                        Text(
+                            text = "Category name",
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.typography.body2.color.copy(0.7f)
+                        )
+                    }
+                )
+
+                TextButton(
+                    onClick = { viewModel.insertCategory() },
+                ) {
+                    Text(text = "Save", color = MaterialTheme.colors.primary)
+                }
             }
         )
 
@@ -168,16 +206,16 @@ fun EditReminderScreen(
                 backgroundColor = MaterialTheme.colors.background
             ) {
                 TextButton(
-                    onClick = { viewModel.onEvent(EditReminderEvents.OnCloseClick) },
+                    onClick = { viewModel.onEvent(EditReminderEvents.OnDeleteClick) },
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
-                        Icons.Rounded.Close,
+                        Icons.Outlined.Delete,
                         contentDescription = null,
-                        tint = MaterialTheme.colors.primary.copy(0.6f)
+                        tint = Red900
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Close", color = MaterialTheme.colors.primary.copy(0.6f))
+                    Text(text = "Delete", color = Red900)
                 }
 
                 TextButton(
@@ -240,9 +278,8 @@ fun EditReminderScreen(
                 DetailsOutlinedTextField(
                     value = viewModel.title,
                     onValueChange = { viewModel.title = it },
-                    placeholder = "Enter title",
-
-                    )
+                    placeholder = "Enter title"
+                )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
@@ -284,7 +321,7 @@ fun EditReminderScreen(
                             " at ${viewModel.date.time.dateToString("HH:mm a")}",
                     placeholder = "Select date and time",
                     trailingIcon = Icons.Rounded.DateRange,
-                    onClick = { showDatePicker = true }
+                    onClick = { viewModel.onEvent(EditReminderEvents.OnSelectDateClick) }
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -357,7 +394,7 @@ fun EditReminderScreen(
                     else
                         viewModel.selectedCategories.add(categories[index])
                 },
-                onCreateCategoryClick = { /*TODO*/ }
+                onCreateCategoryClick = { viewModel.onEvent(EditReminderEvents.OnCreateCategoryClick) }
             )
         }
     }
@@ -545,7 +582,7 @@ private fun DetailsOutlinedTextField(
             Text(
                 text = errorMessage,
                 fontSize = MaterialTheme.typography.caption.fontSize,
-                color = Red900
+                color = Red800
             )
         }
     }

@@ -1,4 +1,4 @@
-package com.atitienei_daniel.reeme.data
+package com.atitienei_daniel.reeme.data.reminders_db
 
 import com.atitienei_daniel.reeme.RemindersDatabase
 import com.atitienei_daniel.reeme.domain.model.Reminder
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import remindersdb.ReminderEntity
 
-class ReminderDataSourceImpl(
+class RemindersDataSourceImpl(
     db: RemindersDatabase
 ) : RemindersDataSource {
 
@@ -36,7 +36,7 @@ class ReminderDataSourceImpl(
                 isDone = reminder.isDone,
                 isPinned = reminder.isPinned,
                 categories = reminder.categories,
-                date = reminder.date
+                date = reminder.date.time
             )
         }
     }

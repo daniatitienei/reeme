@@ -1,11 +1,13 @@
 package com.atitienei_daniel.reeme.ui.screens.create_reminder
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.atitienei_daniel.reeme.data.RemindersDataSource
+import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSource
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
+import com.atitienei_daniel.reeme.ui.utils.dateToString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -38,6 +40,7 @@ class CreateReminderViewModel @Inject constructor(
                 viewModelScope.launch {
                     repository.insertReminder(reminder = event.reminder)
                 }
+                Log.d("reminder_date", event.reminder.date.time.dateToString("dd/MM/yyyy"))
                 sendUiEvent(UiEvent.PopBackStack)
             }
         }
