@@ -5,6 +5,7 @@ plugins {
     id 'kotlin-kapt'
     id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
+    id("com.squareup.sqldelight")
 }
 
 android {
@@ -52,6 +53,10 @@ android {
 }
 
 dependencies {
+    /* SQLDelight */
+    implementation "com.squareup.sqldelight:android-driver:1.5.3"
+    implementation "com.squareup.sqldelight:coroutines-extensions:1.5.3"
+
     /* Room */
     def room_version = "2.4.0"
     implementation "androidx.room:room-ktx:$room_version"
@@ -97,4 +102,10 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+}
+
+sqldelight {
+    RemindersDatabase {
+        packageName = "com.atitienei_daniel.reeme"
+    }
 }
