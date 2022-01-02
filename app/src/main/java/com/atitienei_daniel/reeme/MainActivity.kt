@@ -11,7 +11,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
-import com.atitienei_daniel.reeme.presentation.theme.ReemeTheme
+import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.AndroidEntryPoint

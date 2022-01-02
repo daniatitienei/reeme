@@ -11,10 +11,10 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.atitienei_daniel.reeme.domain.model.Reminder
-import com.atitienei_daniel.reeme.presentation.ui.screens.create_reminder.CreateReminderScreen
-import com.atitienei_daniel.reeme.presentation.ui.screens.edit_reminder.EditReminderScreen
-import com.atitienei_daniel.reeme.presentation.ui.screens.reminders.RemindersScreen
-import com.atitienei_daniel.reeme.presentation.utils.Screens
+import com.atitienei_daniel.reeme.ui.screens.create_reminder.CreateReminderScreen
+import com.atitienei_daniel.reeme.ui.screens.edit_reminder.EditReminderScreen
+import com.atitienei_daniel.reeme.ui.screens.reminders.RemindersListScreen
+import com.atitienei_daniel.reeme.ui.utils.Routes
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -36,14 +36,18 @@ fun Navigation(
     ) {
         AnimatedNavHost(
             navController = navController,
-            startDestination = Screens.Reminders.route
+            startDestination = Routes.REMINDERS
         ) {
-            composable(route = Screens.Reminders.route) {
-                RemindersScreen(navController = navController, moshi = moshi)
+            composable(route = Routes.REMINDERS) {
+                RemindersListScreen(onNavigate = {
+                    navController.navigate(it.route) {
+                        launchSingleTop = true
+                    }
+                })
             }
 
             composable(
-                route = Screens.CreateReminder.route,
+                route = Routes.CREATE_REMINDER,
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
@@ -69,11 +73,13 @@ fun Navigation(
                     ) + fadeOut()
                 }
             ) {
-                CreateReminderScreen(navController = navController)
+                CreateReminderScreen(onPopBackStack = {
+                    navController.popBackStack()
+                })
             }
 
             composable(
-                route = Screens.EditReminder.route,
+                route = Routes.EDIT_REMINDER,
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
@@ -99,11 +105,10 @@ fun Navigation(
                     ) + fadeOut()
                 }
             ) { backStackEntry ->
-                val reminderJson = backStackEntry.arguments?.getString("reminder")
-                val jsonAdapter = moshi.adapter(Reminder::class.java).lenient()
-                val reminderObject = jsonAdapter.fromJson(reminderJson!!)
 
-                EditReminderScreen(navController = navController, reminder = reminderObject!!)
+                EditReminderScreen(onPopBackStack = {
+                    navController.popBackStack()
+                })
             }
         }
     }

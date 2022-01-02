@@ -1,0 +1,43 @@
+import androidx.compose.ui.graphics.Color;
+import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes;
+import java.util.Calendar;
+import java.util.Date;
+import kotlin.collections.List;
+
+CREATE TABLE ReminderEntity (
+    id INTEGER NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    repeat INTEGER AS ReminderRepeatTypes NOT NULL,
+    isPinned INTEGER AS Boolean NOT NULL,
+    isDone INTEGER AS Boolean NOT NULL,
+    color INTEGER AS Color NOT NULL,
+    categories TEXT AS List<String>,
+    date INTEGER AS Calendar NOT NULL
+);
+
+getReminderById:
+SELECT * FROM ReminderEntity WHERE id = :id;
+
+getReminders:
+SELECT * FROM ReminderEntity;
+
+insertReminder:
+INSERT OR REPLACE INTO ReminderEntity
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateReminder:
+UPDATE ReminderEntity
+SET title = :title,
+    description = :description,
+    repeat = :repeat,
+    isPinned = :isPinned,
+    isDone = :isDone,
+    color = :color,
+    categories = :categories,
+    date = :date
+WHERE id = :id;
+
+deleteReminderById:
+DELETE FROM ReminderEntity
+WHERE id = :id;
