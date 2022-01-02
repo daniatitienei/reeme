@@ -20,6 +20,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import remindersdb.ReminderEntity
 import java.util.*
 import javax.inject.Inject
 
@@ -84,15 +85,16 @@ class EditReminderViewModel @Inject constructor(
                 sendUiEvent(UiEvent.PopBackStack)
             }
             is EditReminderEvents.OnCreateCategoryAlertClick -> {
-                TODO()
+                sendUiEvent(UiEvent.AlertDialog(isOpen = true))
             }
             is EditReminderEvents.OnCreateCategoryAlertDismiss -> {
-                TODO()
+                sendUiEvent(UiEvent.AlertDialog(isOpen = false))
             }
             is EditReminderEvents.OnDoneClick -> {
+                isDone = !isDone
                 viewModelScope.launch {
-                    repository.insertReminder(
-                        reminder = Reminder(
+                    repository.updateReminder(
+                        reminder = ReminderEntity(
                             id = reminderId,
                             isDone = isDone,
                             isPinned = isPinned,
@@ -108,8 +110,8 @@ class EditReminderViewModel @Inject constructor(
             }
             is EditReminderEvents.OnSaveClick -> {
                 viewModelScope.launch {
-                    repository.insertReminder(
-                        reminder = Reminder(
+                    repository.updateReminder(
+                        reminder = ReminderEntity(
                             id = reminderId,
                             isDone = isDone,
                             isPinned = isPinned,
@@ -122,6 +124,7 @@ class EditReminderViewModel @Inject constructor(
                         )
                     )
                 }
+                sendUiEvent(UiEvent.PopBackStack)
             }
         }
     }

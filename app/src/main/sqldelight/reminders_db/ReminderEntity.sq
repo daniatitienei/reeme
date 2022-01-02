@@ -26,16 +26,17 @@ insertReminder:
 INSERT OR REPLACE INTO ReminderEntity
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
--- updateReminder:
--- UPDATE ReminderEntity
--- SET title = :title
--- SET description = :description
--- SET repeat = :repeat
--- SET isPinned = :isPinned
--- SET isDone = :isDone
--- SET color = :color
--- SET categories = :categories
--- SET date = :date
+updateReminder:
+UPDATE ReminderEntity
+SET title = :title,
+    description = :description,
+    repeat = :repeat,
+    isPinned = :isPinned,
+    isDone = :isDone,
+    color = :color,
+    categories = :categories,
+    date = :date
+WHERE id = :id;
 
 deleteReminderById:
 DELETE FROM ReminderEntity

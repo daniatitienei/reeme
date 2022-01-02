@@ -72,7 +72,7 @@ fun RemindersListScreen(
     }
 
     val upcomingReminders = state.filter { reminder -> !reminder.isDone && !reminder.isPinned }
-    val pinnedReminders = state.filter { reminder -> reminder.isPinned }
+    val pinnedReminders = state.filter { reminder -> reminder.isPinned && !reminder.isDone }
     val completedReminders = state.filter { reminder -> reminder.isDone }
 
     val scope = rememberCoroutineScope()

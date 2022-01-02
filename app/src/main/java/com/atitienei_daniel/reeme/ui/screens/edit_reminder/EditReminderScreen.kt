@@ -32,6 +32,7 @@ import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import com.google.accompanist.flowlayout.FlowRow
+import kotlinx.coroutines.flow.collect
 import java.util.*
 
 @ExperimentalAnimationApi
@@ -41,6 +42,32 @@ fun EditReminderScreen(
     onPopBackStack: (UiEvent.PopBackStack) -> Unit,
     viewModel: EditReminderViewModel = hiltViewModel()
 ) {
+    var showDatePicker by remember {
+        mutableStateOf(false)
+    }
+
+    var showTimePicker by remember {
+        mutableStateOf(false)
+    }
+
+    var showRepeatDropdownMenu by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is UiEvent.PopBackStack -> {
+                    onPopBackStack(event)
+                }
+                is UiEvent.AlertDialog -> {
+                    showDatePicker = event.isOpen
+                }
+                else -> Unit
+            }
+        }
+    }
+
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
@@ -61,22 +88,6 @@ fun EditReminderScreen(
         "Date",
         "Trip"
     )
-
-    var showDatePicker by remember {
-        mutableStateOf(false)
-    }
-
-    var time by remember {
-        mutableStateOf("")
-    }
-
-    var showTimePicker by remember {
-        mutableStateOf(false)
-    }
-
-    var showRepeatDropdownMenu by remember {
-        mutableStateOf(false)
-    }
 
     var year by remember {
         mutableStateOf<Int?>(null)
@@ -106,15 +117,10 @@ fun EditReminderScreen(
         selectedColorIndex = colors.indexOf(viewModel.color)
     }
 
-    var dateFormatted by remember {
-        mutableStateOf("")
-    }
-
     if (showDatePicker)
         ShowDatePicker(
             context = context,
             onDatePicked = { newDate, newYear, newMonth, newDayOfMonth ->
-                dateFormatted = newDate
                 year = newYear
                 month = newMonth
                 day = newDayOfMonth
@@ -131,7 +137,6 @@ fun EditReminderScreen(
         ShowTimePicker(
             context = context,
             onTimePicked = { newTime, hrs, mins ->
-                time = newTime
                 hours = hrs
                 minutes = mins
 
@@ -163,7 +168,7 @@ fun EditReminderScreen(
                 backgroundColor = MaterialTheme.colors.background
             ) {
                 TextButton(
-                    onClick = { onPopBackStack(UiEvent.PopBackStack) },
+                    onClick = { viewModel.onEvent(EditReminderEvents.OnCloseClick) },
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
@@ -194,10 +199,10 @@ fun EditReminderScreen(
                 }
 
                 TextButton(
-                    onClick = { viewModel.isDone = !viewModel.isDone },
+                    onClick = { viewModel.onEvent(EditReminderEvents.OnDoneClick) },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Crossfade(targetState = viewModel.isDone) {
+                    Crossfade(targetState = viewModel.isDone) { isDone ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center,
@@ -206,13 +211,13 @@ fun EditReminderScreen(
                                 .animateContentSize()
                         ) {
                             Icon(
-                                if (!it) Icons.Rounded.DoneAll else Icons.Rounded.RemoveDone,
+                                if (!isDone) Icons.Rounded.DoneAll else Icons.Rounded.RemoveDone,
                                 contentDescription = null,
                                 tint = MaterialTheme.colors.primary
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (!it) "Done" else "Undone",
+                                text = if (!isDone) "Done" else "Undone",
                                 color = MaterialTheme.colors.primary
                             )
                         }

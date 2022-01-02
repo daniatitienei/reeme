@@ -13,4 +13,6 @@ interface RemindersDataSource {
     suspend fun insertReminder(reminder: Reminder)
 
     suspend fun deleteReminderById(id: Long)
+
+    suspend fun updateReminder(reminder: ReminderEntity)
 }

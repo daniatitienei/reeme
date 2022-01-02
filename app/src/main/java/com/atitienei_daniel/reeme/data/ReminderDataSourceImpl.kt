@@ -46,4 +46,20 @@ class ReminderDataSourceImpl(
             queries.deleteReminderById(id = id)
         }
     }
+
+    override suspend fun updateReminder(reminder: ReminderEntity) {
+        withContext(Dispatchers.IO) {
+            queries.updateReminder(
+                id = reminder.id,
+                isDone = reminder.isDone,
+                isPinned = reminder.isPinned,
+                title = reminder.title,
+                description = reminder.description,
+                repeat = reminder.repeat,
+                color = reminder.color,
+                categories = reminder.categories,
+                date = reminder.date
+            )
+        }
+    }
 }
