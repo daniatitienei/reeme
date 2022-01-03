@@ -36,7 +36,6 @@ import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.flow.collect
 
-/* FIXME When adding a category it doesn't appears instantly */
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
@@ -254,7 +253,6 @@ fun EditReminderScreen(
     }
 }
 
-/* FIXME Center vertically outlined text field */
 @Composable
 private fun CreateCategoryAlertDialog(
     onEvent: (EditReminderEvents) -> Unit,
@@ -266,46 +264,59 @@ private fun CreateCategoryAlertDialog(
         onDismissRequest = {
             onEvent(EditReminderEvents.DismissCreateCategoryAlert)
         },
-        title = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentWidth(align = Alignment.CenterHorizontally)
+        buttons = {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 15.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Create reminder")
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    categories.add(newCategoryTitle)
-                    onEvent(EditReminderEvents.InsertCategory(categories = categories))
-                },
-            ) {
-                Text(text = "Create", color = MaterialTheme.colors.primary)
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onEvent(EditReminderEvents.DismissCreateCategoryAlert)
-                },
-            ) {
-                Text(text = "Cancel", color = Red900)
-            }
-        },
-        text = {
-            OutlinedTextField(
-                value = newCategoryTitle,
-                onValueChange = onValueChange,
-                placeholder = {
-                    Text(
-                        text = "Category name",
-                        style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.primary.copy(alpha = 0.7f)
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth(align = Alignment.CenterHorizontally)
+                ) {
+                    Text(text = "Create reminder")
                 }
-            )
+
+                Spacer(modifier = Modifier.height(20.dp))
+                OutlinedTextField(
+                    value = newCategoryTitle,
+                    onValueChange = onValueChange,
+                    placeholder = {
+                        Text(
+                            text = "Category name",
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.colors.primary.copy(alpha = 0.7f)
+                        )
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    TextButton(
+                        onClick = {
+                            onEvent(EditReminderEvents.DismissCreateCategoryAlert)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Cancel", color = Red900)
+                    }
+
+                    TextButton(
+                        onClick = {
+                            categories.add(newCategoryTitle)
+                            onValueChange("")
+                            onEvent(EditReminderEvents.InsertCategory(categories = categories))
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Create", color = MaterialTheme.colors.primary)
+                    }
+                }
+            }
         }
     )
 }
@@ -493,79 +504,55 @@ private fun Categories(
             crossAxisSpacing = 10.dp,
             mainAxisSpacing = 10.dp
         ) {
-            if (categories.isNotEmpty())
-                repeat(categories.size) { index ->
-                    val isSelected = selectedCategories.contains(categories[index])
 
-                    val backgroundColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.primary else MaterialTheme.colors.background)
+            repeat(categories.size) { index ->
+                val isSelected = selectedCategories.contains(categories[index])
 
-                    val textColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.background else MaterialTheme.colors.primary)
+                val backgroundColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.primary else MaterialTheme.colors.background)
 
-                    if (index != categories.size - 1)
-                        Card(
-                            onClick = {
-                                onCategoryClick(index, isSelected)
-                            }
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .background(backgroundColor)
-                                    .padding(horizontal = 15.dp, vertical = 5.dp),
-                            ) {
-                                Text(
-                                    text = categories[index],
-                                    color = textColor
-                                )
-                            }
-                        }
-                    else
-                        Card(
-                            onClick = { onEvent(EditReminderEvents.OpenCreateCategoryAlertDialog) }
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .background(MaterialTheme.colors.background)
-                                    .padding(horizontal = 15.dp, vertical = 5.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Create new category",
-                                    color = textColor
-                                )
-                                Spacer(modifier = Modifier.width(5.dp))
-                                Icon(
-                                    Icons.Rounded.Add,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colors.primary
-                                )
-                            }
-                        }
-                }
-            else
+                val textColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.background else MaterialTheme.colors.primary)
+
                 Card(
-                    onClick = { onEvent(EditReminderEvents.OpenCreateCategoryAlertDialog) }
+                    onClick = {
+                        onCategoryClick(index, isSelected)
+                    }
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.medium)
-                            .background(MaterialTheme.colors.background)
+                            .background(backgroundColor)
                             .padding(horizontal = 15.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Create new category",
-                            color = MaterialTheme.colors.primary
-                        )
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Icon(
-                            Icons.Rounded.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colors.primary
+                            text = categories[index],
+                            color = textColor
                         )
                     }
                 }
+            }
+
+            Card(
+                onClick = { onEvent(EditReminderEvents.OpenCreateCategoryAlertDialog) }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(MaterialTheme.colors.background)
+                        .padding(horizontal = 15.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Create new category",
+                        color = MaterialTheme.colors.primary
+                    )
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Icon(
+                        Icons.Rounded.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colors.primary
+                    )
+                }
+            }
         }
     }
 }

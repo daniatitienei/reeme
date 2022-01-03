@@ -23,7 +23,7 @@ import javax.inject.Inject
 class EditReminderViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: RemindersDataSource,
-    private val storeCategories: StoreCategories
+    private val storeCategories: StoreCategories,
 ) : ViewModel() {
 
     private var _uiEvent = MutableSharedFlow<UiEvent>()
@@ -120,6 +120,7 @@ class EditReminderViewModel @Inject constructor(
             }
             is EditReminderEvents.InsertCategory -> {
                 insertCategory(event.categories)
+                sendUiEvent(UiEvent.AlertDialog(isOpen = false))
             }
             is EditReminderEvents.OnDoneClick -> {
                 isDone = !isDone
