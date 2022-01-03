@@ -61,11 +61,6 @@ dependencies {
     implementation "com.squareup.sqldelight:android-driver:1.5.3"
     implementation "com.squareup.sqldelight:coroutines-extensions:1.5.3"
 
-    /* Room */
-    def room_version = "2.4.0"
-    implementation "androidx.room:room-ktx:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
-
     /* Moshi */
     implementation("com.squareup.moshi:moshi-kotlin:1.13.0")
     implementation("com.squareup.moshi:moshi:1.13.0")

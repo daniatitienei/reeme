@@ -8,3 +8,13 @@ enum class ReminderRepeatTypes {
     YEARLY,
     UNSELECTED
 }
+
+fun ReminderRepeatTypes.toString(reminderRepeatTypes: ReminderRepeatTypes) =
+    when (reminderRepeatTypes) {
+        ReminderRepeatTypes.ONCE -> "Once"
+        ReminderRepeatTypes.DAILY -> "Daily"
+        ReminderRepeatTypes.WEEKLY -> "Weekly"
+        ReminderRepeatTypes.MONTHLY -> "Monthly"
+        ReminderRepeatTypes.YEARLY -> "Yearly"
+        else -> ""
+    }

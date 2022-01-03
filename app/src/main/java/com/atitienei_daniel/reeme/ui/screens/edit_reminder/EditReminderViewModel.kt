@@ -9,13 +9,10 @@ import androidx.lifecycle.viewModelScope
 import com.atitienei_daniel.reeme.data.datastore.StoreCategories
 import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSource
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
-import com.atitienei_daniel.reeme.ui.utils.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import remindersdb.ReminderEntity
@@ -26,11 +23,11 @@ import javax.inject.Inject
 class EditReminderViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: RemindersDataSource,
-    private val storeCategories: StoreCategories
+    private val storeCategories: StoreCategories,
 ) : ViewModel() {
 
-    private var _uiEvent = Channel<UiEvent>()
-    val uiEvent = _uiEvent.receiveAsFlow()
+    private var _uiEvent = MutableSharedFlow<UiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
 
     var reminderId by mutableStateOf(0L)
 
@@ -54,8 +51,6 @@ class EditReminderViewModel @Inject constructor(
         savedStateHandle.get<String>("reminderId")?.let { reminderId ->
             getReminderById(id = reminderId)
         }
-
-        getCategories()
     }
 
     private fun getReminderById(id: String) {
@@ -78,23 +73,15 @@ class EditReminderViewModel @Inject constructor(
         }
     }
 
-    private fun getCategories() {
+    fun getCategories(): Flow<MutableList<String>?> = storeCategories.getCategories
+
+    private fun insertCategory(categories: MutableList<String>) {
         viewModelScope.launch {
-            storeCategories.getCategories.collect {
-                Log.d("reminder_categories", it.toString())
-            }
+            Log.d("categories", categories.toString())
+            storeCategories.insertCategory(categories = categories)
         }
     }
 
-    fun insertCategory() {
-        viewModelScope.launch {
-            storeCategories.getCategories.collect { categories ->
-                categories?.let {
-                    storeCategories.insertCategory(categories = it)
-                }
-            }
-        }
-    }
 
     fun onEvent(event: EditReminderEvents) {
         when (event) {
@@ -104,23 +91,36 @@ class EditReminderViewModel @Inject constructor(
                 }
                 sendUiEvent(UiEvent.PopBackStack)
             }
-            is EditReminderEvents.OnCreateCategoryClick -> {
+            is EditReminderEvents.OpenCreateCategoryAlertDialog -> {
                 sendUiEvent(UiEvent.AlertDialog(isOpen = true))
             }
-            is EditReminderEvents.OnCreateCategoryAlertDismiss -> {
+            is EditReminderEvents.DismissCreateCategoryAlert -> {
                 sendUiEvent(UiEvent.AlertDialog(isOpen = false))
             }
-            is EditReminderEvents.OnSelectDateClick -> {
+            is EditReminderEvents.OpenDatePicker -> {
                 sendUiEvent(UiEvent.DatePicker(isOpen = true))
             }
-            is EditReminderEvents.OnSelectDateDismiss -> {
+            is EditReminderEvents.DismissDatePicker -> {
                 sendUiEvent(UiEvent.DatePicker(isOpen = false))
             }
-            is EditReminderEvents.OnSelectTimeClick -> {
+            is EditReminderEvents.OpenTimePicker -> {
                 sendUiEvent(UiEvent.TimePicker(isOpen = true))
             }
-            is EditReminderEvents.OnSelectTimeDismiss -> {
+            is EditReminderEvents.DismissTimePicker -> {
                 sendUiEvent(UiEvent.TimePicker(isOpen = false))
+            }
+            is EditReminderEvents.CloseDropdown -> {
+                sendUiEvent(UiEvent.Dropdown(isOpen = false))
+            }
+            is EditReminderEvents.ShowDropdown -> {
+                sendUiEvent(UiEvent.Dropdown(isOpen = true))
+            }
+            is EditReminderEvents.ToggleCheckBox -> {
+                isPinned = event.isChecked
+            }
+            is EditReminderEvents.InsertCategory -> {
+                insertCategory(event.categories)
+                sendUiEvent(UiEvent.AlertDialog(isOpen = false))
             }
             is EditReminderEvents.OnDoneClick -> {
                 isDone = !isDone
@@ -131,7 +131,7 @@ class EditReminderViewModel @Inject constructor(
                             isDone = isDone,
                             isPinned = isPinned,
                             repeat = repeat,
-                            date = date!!.time,
+                            date = date.time,
                             color = color!!,
                             description = description,
                             categories = selectedCategories,
@@ -148,7 +148,7 @@ class EditReminderViewModel @Inject constructor(
                             isDone = isDone,
                             isPinned = isPinned,
                             repeat = repeat,
-                            date = date!!.time,
+                            date = date.time,
                             color = color!!,
                             description = description,
                             categories = selectedCategories,
@@ -163,7 +163,7 @@ class EditReminderViewModel @Inject constructor(
 
     private fun sendUiEvent(uiEvent: UiEvent) {
         viewModelScope.launch {
-            _uiEvent.send(uiEvent)
+            _uiEvent.emit(uiEvent)
         }
     }
 }

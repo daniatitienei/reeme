@@ -1,13 +1,27 @@
 package com.atitienei_daniel.reeme.ui.screens.edit_reminder
 
 sealed class EditReminderEvents {
+    /* Bottom app bar */
     object OnSaveClick: EditReminderEvents()
     object OnDeleteClick: EditReminderEvents()
     object OnDoneClick: EditReminderEvents()
-    object OnCreateCategoryClick: EditReminderEvents()
-    object OnCreateCategoryAlertDismiss: EditReminderEvents()
-    object OnSelectDateClick: EditReminderEvents()
-    object OnSelectDateDismiss: EditReminderEvents()
-    object OnSelectTimeClick: EditReminderEvents()
-    object OnSelectTimeDismiss: EditReminderEvents()
+
+    /* Alert dialog */
+    object OpenCreateCategoryAlertDialog: EditReminderEvents()
+    object DismissCreateCategoryAlert: EditReminderEvents()
+
+    /* Pickers */
+    object OpenDatePicker: EditReminderEvents()
+    object DismissDatePicker: EditReminderEvents()
+    object OpenTimePicker: EditReminderEvents()
+    object DismissTimePicker: EditReminderEvents()
+
+    /* Dropdown */
+    object ShowDropdown: EditReminderEvents()
+    object CloseDropdown: EditReminderEvents()
+
+    /* Checkbox */
+    data class ToggleCheckBox(val isChecked: Boolean): EditReminderEvents()
+
+    data class InsertCategory(val categories: MutableList<String>): EditReminderEvents()
 }
