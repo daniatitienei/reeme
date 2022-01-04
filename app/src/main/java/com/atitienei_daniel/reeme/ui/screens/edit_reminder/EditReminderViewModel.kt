@@ -77,7 +77,6 @@ class EditReminderViewModel @Inject constructor(
 
     private fun insertCategory(categories: MutableList<String>) {
         viewModelScope.launch {
-            Log.d("categories", categories.toString())
             storeCategories.insertCategory(categories = categories)
         }
     }
@@ -109,11 +108,8 @@ class EditReminderViewModel @Inject constructor(
             is EditReminderEvents.DismissTimePicker -> {
                 sendUiEvent(UiEvent.TimePicker(isOpen = false))
             }
-            is EditReminderEvents.CloseDropdown -> {
-                sendUiEvent(UiEvent.Dropdown(isOpen = false))
-            }
-            is EditReminderEvents.ShowDropdown -> {
-                sendUiEvent(UiEvent.Dropdown(isOpen = true))
+            is EditReminderEvents.ToggleDropdown -> {
+                sendUiEvent(UiEvent.Dropdown(isOpen = event.isOpen))
             }
             is EditReminderEvents.ToggleCheckBox -> {
                 isPinned = event.isChecked

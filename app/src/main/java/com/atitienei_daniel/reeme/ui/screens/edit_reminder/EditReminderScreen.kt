@@ -4,36 +4,30 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Repeat
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.rounded.DateRange
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.RemoveDone
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.atitienei_daniel.reeme.ui.screens.utils.ShowDatePicker
-import com.atitienei_daniel.reeme.ui.screens.utils.ShowTimePicker
-import com.atitienei_daniel.reeme.ui.theme.*
+import com.atitienei_daniel.reeme.ui.theme.Red900
 import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
+import com.atitienei_daniel.reeme.ui.utils.components.*
 import com.atitienei_daniel.reeme.ui.utils.dateToString
-import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
-import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.flow.collect
 
 @ExperimentalAnimationApi
@@ -104,7 +98,7 @@ fun EditReminderScreen(
     if (showDatePicker)
         ShowDatePicker(
             context = context,
-            onDatePicked = { newDate, year, month, dayOfMonth ->
+            onDatePicked = { _, year, month, dayOfMonth ->
                 viewModel.date.set(year, month, dayOfMonth)
 
                 viewModel.onEvent(EditReminderEvents.DismissDatePicker)
@@ -118,7 +112,7 @@ fun EditReminderScreen(
     if (showTimePicker)
         ShowTimePicker(
             context = context,
-            onTimePicked = { newTime, hours, minutes ->
+            onTimePicked = { _, hours, minutes ->
                 viewModel.date.set(
                     viewModel.date.get(1),
                     viewModel.date.get(2),
@@ -136,12 +130,22 @@ fun EditReminderScreen(
 
     if (isCreateCategoryDialogOpen)
         CreateCategoryAlertDialog(
-            onEvent = viewModel::onEvent,
             newCategoryTitle = newCategoryTitle,
             onValueChange = {
                 newCategoryTitle = it
             },
             categories = categories!!,
+            onSaveClick = {
+                categories!!.add(newCategoryTitle)
+                newCategoryTitle = ""
+                viewModel.onEvent(EditReminderEvents.InsertCategory(categories = categories!!))
+            },
+            onCancelClick = {
+                viewModel.onEvent(EditReminderEvents.DismissCreateCategoryAlert)
+            },
+            onDismissRequest = {
+                viewModel.onEvent(EditReminderEvents.DismissCreateCategoryAlert)
+            }
         )
 
     Scaffold(
@@ -176,7 +180,7 @@ fun EditReminderScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                DetailsOutlinedTextField(
+                OutlinedTextFieldWithErrorText(
                     value = viewModel.title,
                     onValueChange = { viewModel.title = it },
                     placeholder = "Enter title"
@@ -184,7 +188,7 @@ fun EditReminderScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                DetailsOutlinedTextField(
+                OutlinedTextFieldWithErrorText(
                     value = viewModel.description ?: "",
                     onValueChange = { viewModel.description = it },
                     placeholder = "Enter description"
@@ -194,7 +198,9 @@ fun EditReminderScreen(
 
                 Pinned(
                     isPinned = viewModel.isPinned,
-                    onEvent = viewModel::onEvent
+                    onCheckedChange = { isChecked ->
+                        viewModel.onEvent(EditReminderEvents.ToggleCheckBox(isChecked = isChecked))
+                    }
                 )
             }
 
@@ -228,11 +234,13 @@ fun EditReminderScreen(
                 Spacer(modifier = Modifier.height(10.dp))
 
 
-                RepeatDropDown(
+                RepeatDropdown(
                     repeat = viewModel.repeat,
                     onRepeatValueChange = { viewModel.repeat = it },
                     showRepeatDropdownMenu = showRepeatDropdownMenu,
-                    onEvent = viewModel::onEvent,
+                    toggleDropDown = { isDropdownOpen ->
+                        viewModel.onEvent(EditReminderEvents.ToggleDropdown(isDropdownOpen))
+                    }
                 )
             }
 
@@ -247,78 +255,12 @@ fun EditReminderScreen(
                     else
                         viewModel.selectedCategories.add(categories!![index])
                 },
-                onEvent = viewModel::onEvent
+                onCreateCategoryClick = {
+                    viewModel.onEvent(EditReminderEvents.OpenCreateCategoryAlertDialog)
+                }
             )
         }
     }
-}
-
-@Composable
-private fun CreateCategoryAlertDialog(
-    onEvent: (EditReminderEvents) -> Unit,
-    newCategoryTitle: String,
-    onValueChange: (String) -> Unit,
-    categories: MutableList<String>,
-) {
-    AlertDialog(
-        onDismissRequest = {
-            onEvent(EditReminderEvents.DismissCreateCategoryAlert)
-        },
-        buttons = {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 15.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentWidth(align = Alignment.CenterHorizontally)
-                ) {
-                    Text(text = "Create reminder")
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-                OutlinedTextField(
-                    value = newCategoryTitle,
-                    onValueChange = onValueChange,
-                    placeholder = {
-                        Text(
-                            text = "Category name",
-                            style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.primary.copy(alpha = 0.7f)
-                        )
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    TextButton(
-                        onClick = {
-                            onEvent(EditReminderEvents.DismissCreateCategoryAlert)
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(text = "Cancel", color = Red900)
-                    }
-
-                    TextButton(
-                        onClick = {
-                            categories.add(newCategoryTitle)
-                            onValueChange("")
-                            onEvent(EditReminderEvents.InsertCategory(categories = categories))
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(text = "Create", color = MaterialTheme.colors.primary)
-                    }
-                }
-            }
-        }
-    )
 }
 
 @Composable
@@ -422,205 +364,12 @@ private fun DoneButton(
 }
 
 @Composable
-private fun RepeatDropDown(
-    repeat: ReminderRepeatTypes,
-    onRepeatValueChange: (ReminderRepeatTypes) -> Unit,
-    showRepeatDropdownMenu: Boolean,
-    onEvent: (EditReminderEvents) -> Unit,
-) {
-    Column {
-        OutlinedPicker(
-            value = when (repeat) {
-                ReminderRepeatTypes.ONCE -> "Once"
-                ReminderRepeatTypes.DAILY -> "Daily"
-                ReminderRepeatTypes.WEEKLY -> "Weekly"
-                ReminderRepeatTypes.MONTHLY -> "Monthly"
-                ReminderRepeatTypes.YEARLY -> "Yearly"
-                else -> ""
-            },
-            placeholder = "Repeat",
-            trailingIcon = Icons.Outlined.Repeat,
-            onClick = {
-                onEvent(EditReminderEvents.ShowDropdown)
-            }
-        )
-
-        DropdownMenu(
-            expanded = showRepeatDropdownMenu,
-            onDismissRequest = { onEvent(EditReminderEvents.CloseDropdown) }
-        ) {
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.ONCE)
-                onEvent(EditReminderEvents.CloseDropdown)
-            }) {
-                Text(text = "Once")
-            }
-
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.DAILY)
-                onEvent(EditReminderEvents.CloseDropdown)
-            }) {
-                Text(text = "Daily")
-            }
-
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.WEEKLY)
-                onEvent(EditReminderEvents.CloseDropdown)
-            }) {
-                Text(text = "Weekly")
-            }
-
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.MONTHLY)
-                onEvent(EditReminderEvents.CloseDropdown)
-            }) {
-                Text(text = "Monthly")
-            }
-
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.YEARLY)
-                onEvent(EditReminderEvents.CloseDropdown)
-            }) {
-                Text(text = "Yearly")
-            }
-        }
-    }
-}
-
-@ExperimentalMaterialApi
-@Composable
-private fun Categories(
-    categories: List<String>,
-    selectedCategories: List<String>,
-    onCategoryClick: (index: Int, isSelected: Boolean) -> Unit,
-    onEvent: (EditReminderEvents) -> Unit,
-) {
-    Column {
-        Text(text = "Categories")
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        FlowRow(
-            crossAxisSpacing = 10.dp,
-            mainAxisSpacing = 10.dp
-        ) {
-
-            repeat(categories.size) { index ->
-                val isSelected = selectedCategories.contains(categories[index])
-
-                val backgroundColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.primary else MaterialTheme.colors.background)
-
-                val textColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.background else MaterialTheme.colors.primary)
-
-                Card(
-                    onClick = {
-                        onCategoryClick(index, isSelected)
-                    }
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.medium)
-                            .background(backgroundColor)
-                            .padding(horizontal = 15.dp, vertical = 5.dp),
-                    ) {
-                        Text(
-                            text = categories[index],
-                            color = textColor
-                        )
-                    }
-                }
-            }
-
-            Card(
-                onClick = { onEvent(EditReminderEvents.OpenCreateCategoryAlertDialog) }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(MaterialTheme.colors.background)
-                        .padding(horizontal = 15.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Create new category",
-                        color = MaterialTheme.colors.primary
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Icon(
-                        Icons.Rounded.Add,
-                        contentDescription = null,
-                        tint = MaterialTheme.colors.primary
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Pinned(
-    isPinned: Boolean,
-    onEvent: (EditReminderEvents) -> Unit,
-) {
-    Row(
-        modifier = Modifier.clickable {
-            onEvent(EditReminderEvents.ToggleCheckBox(isChecked = !isPinned))
-        },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(
-            checked = isPinned,
-            onCheckedChange = { isChecked ->
-                onEvent(EditReminderEvents.ToggleCheckBox(isChecked = isChecked))
-            }
-        )
-        Text(text = "Pinned")
-    }
-}
-
-@Composable
-private fun DetailsOutlinedTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    errorMessage: String? = null,
-) {
-    Column(
-        modifier = Modifier.animateContentSize()
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
-                )
-            },
-            textStyle = MaterialTheme.typography.body2,
-            isError = !errorMessage.isNullOrEmpty()
-        )
-
-        if (!errorMessage.isNullOrEmpty()) {
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = errorMessage,
-                fontSize = MaterialTheme.typography.caption.fontSize,
-                color = Red800
-            )
-        }
-    }
-}
-
-@Composable
 private fun OutlinedPicker(
     value: String,
     placeholder: String,
     trailingIcon: ImageVector,
     onClick: () -> Unit,
 ) {
-
     OutlinedTextField(
         value = value,
         onValueChange = { },
@@ -645,36 +394,4 @@ private fun OutlinedPicker(
             onClick()
         }
     )
-}
-
-@Composable
-private fun SelectReminderCardColor(
-    colors: List<Color>,
-    selectedColorIndex: Int,
-    onClick: (Int) -> Unit,
-) {
-    FlowRow(
-        mainAxisSpacing = 15.dp,
-        crossAxisSpacing = 10.dp,
-    ) {
-        repeat(colors.size) { index ->
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(colors[index])
-                    .size(42.dp)
-                    .clickable {
-                        onClick(index)
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                if (selectedColorIndex == index)
-                    Icon(
-                        Icons.Rounded.Check,
-                        contentDescription = "Selected",
-                        tint = MaterialTheme.colors.primary
-                    )
-            }
-        }
-    }
 }

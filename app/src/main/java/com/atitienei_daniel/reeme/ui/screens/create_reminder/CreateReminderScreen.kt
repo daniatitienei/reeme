@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +28,9 @@ import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.ui.theme.*
 import com.atitienei_daniel.reeme.ui.screens.utils.ShowDatePicker
 import com.atitienei_daniel.reeme.ui.screens.utils.ShowTimePicker
+import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
+import com.atitienei_daniel.reeme.ui.utils.components.*
 import com.atitienei_daniel.reeme.ui.utils.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import com.google.accompanist.flowlayout.FlowRow
@@ -42,28 +43,12 @@ import java.util.*
 @Composable
 fun CreateReminderScreen(
     onPopBackStack: (UiEvent.PopBackStack) -> Unit,
-    viewModel: CreateReminderViewModel = hiltViewModel()
+    viewModel: CreateReminderViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    val colors = listOf(
-        Red800,
-        Blue900,
-        Yellow900,
-        Purple900,
-        Orange900,
-        Lime900,
-        Pink900
-    )
-
-    val categories = listOf(
-        "Work",
-        "Programming",
-        "Life",
-        "Date",
-        "Trip"
-    )
+    val colors = Constants.colors
 
     var isCreateCategoryDialogOpen by remember {
         mutableStateOf(false)
@@ -93,7 +78,7 @@ fun CreateReminderScreen(
         mutableStateOf("")
     }
 
-    var showDatePicker by remember {
+    var isDatePickerOpen by remember {
         mutableStateOf(false)
     }
 
@@ -101,7 +86,7 @@ fun CreateReminderScreen(
         mutableStateOf("")
     }
 
-    var showTimePicker by remember {
+    var isTimePickerOpen by remember {
         mutableStateOf(false)
     }
 
@@ -111,26 +96,6 @@ fun CreateReminderScreen(
 
     var showRepeatDropdownMenu by remember {
         mutableStateOf(false)
-    }
-
-    var year by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-    var month by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-    var day by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-    var hours by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-    var minutes by remember {
-        mutableStateOf<Int?>(null)
     }
 
     var newCategoryTitle by remember {
@@ -145,84 +110,79 @@ fun CreateReminderScreen(
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is UiEvent.AlertDialog -> {
-                    isCreateCategoryDialogOpen = !isCreateCategoryDialogOpen
+                    isCreateCategoryDialogOpen = event.isOpen
                 }
                 is UiEvent.PopBackStack -> {
                     onPopBackStack(event)
+                }
+                is UiEvent.DatePicker -> {
+                    isDatePickerOpen = event.isOpen
+                }
+                is UiEvent.TimePicker -> {
+                    isTimePickerOpen = event.isOpen
+                }
+                is UiEvent.CheckBox -> {
+                    isPinned = event.isChecked
+                }
+                is UiEvent.Dropdown -> {
+                    showRepeatDropdownMenu = event.isOpen
                 }
                 else -> Unit
             }
         }
     }
 
-    if (showDatePicker)
+    val categories by viewModel.getCategories().collectAsState(initial = mutableListOf())
+
+    if (isDatePickerOpen)
         ShowDatePicker(
             context = context,
-            onDatePicked = { newDate, newYear, newMonth, newDayOfMonth ->
+            onDatePicked = { newDate, year, month, dayOfMonth ->
                 date = newDate
-                year = newYear
-                month = newMonth
-                day = newDayOfMonth
 
-                showDatePicker = false
-                showTimePicker = true
+                calendar.set(year, month, dayOfMonth)
+
+                viewModel.onEvent(CreateReminderEvents.DismissDatePicker)
+                viewModel.onEvent(CreateReminderEvents.OpenTimePicker)
             },
             onDismissRequest = {
-                showDatePicker = false
+                viewModel.onEvent(CreateReminderEvents.DismissDatePicker)
             }
         )
 
-    if (showTimePicker)
+    if (isTimePickerOpen)
         ShowTimePicker(
             context = context,
-            onTimePicked = { newTime, hrs, mins ->
+            onTimePicked = { newTime, hours, minutes ->
+
                 time = newTime
-                hours = hrs
-                minutes = mins
 
-                calendar.set(year!!, month!!, day!!, hours!!, minutes!!)
+                calendar.set(calendar.get(1), calendar.get(2), calendar.get(3), hours, minutes)
 
-                showTimePicker = false
+                viewModel.onEvent(CreateReminderEvents.DismissTimePicker)
             },
             onDismissRequest = {
-                showTimePicker = false
+                viewModel.onEvent(CreateReminderEvents.DismissTimePicker)
             }
         )
 
     if (isCreateCategoryDialogOpen)
-        AlertDialog(
-            onDismissRequest = {
-                viewModel.onEvent(
-                    CreateReminderEvents.OnCreateCategoryAlertDismiss
-                )
+        CreateCategoryAlertDialog(
+            newCategoryTitle = newCategoryTitle,
+            onValueChange = {
+                newCategoryTitle = it
             },
-            buttons = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentWidth(align = Alignment.CenterHorizontally)
-                ) {
-                    Text(text = "Create reminder")
-                }
-
-                OutlinedTextField(
-                    value = newCategoryTitle,
-                    onValueChange = { newCategoryTitle = it },
-                    placeholder = {
-                        Text(
-                            text = "Category name",
-                            style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.typography.body2.color.copy(0.7f)
-                        )
-                    }
-                )
-
-                TextButton(
-                    onClick = { /*TODO*/ },
-                    enabled = newCategoryTitle.isNotEmpty()
-                ) {
-                    Text(text = "Save", color = MaterialTheme.colors.primary)
-                }
+            categories = categories!!,
+            onSaveClick = {
+                categories!!.add(newCategoryTitle)
+                newCategoryTitle = ""
+                viewModel.onEvent(CreateReminderEvents.InsertCategory(categories = categories!!))
+            },
+            onCancelClick = {
+                viewModel.onEvent(CreateReminderEvents.DismissCreateCategoryAlert)
+            },
+            onDismissRequest = {
+                viewModel.onEvent(CreateReminderEvents.DismissCreateCategoryAlert)
             }
         )
 
@@ -265,7 +225,7 @@ fun CreateReminderScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                DetailsOutlinedTextField(
+                OutlinedTextFieldWithErrorText(
                     value = title,
                     onValueChange = { title = it },
                     placeholder = "Enter title",
@@ -274,7 +234,7 @@ fun CreateReminderScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                DetailsOutlinedTextField(
+                OutlinedTextFieldWithErrorText(
                     value = description,
                     onValueChange = { description = it },
                     placeholder = "Enter description"
@@ -284,7 +244,9 @@ fun CreateReminderScreen(
 
                 Pinned(
                     isPinned = isPinned,
-                    onCheckedChange = { isPinned = it }
+                    onCheckedChange = { isChecked ->
+                        viewModel.onEvent(CreateReminderEvents.ToggleCheckBox(isChecked = isChecked))
+                    }
                 )
             }
 
@@ -313,31 +275,35 @@ fun CreateReminderScreen(
                     }, at ${calendar.time.dateToString("HH:mm")}" else "",
                     placeholder = "Select date and time",
                     trailingIcon = Icons.Rounded.DateRange,
-                    onClick = { showDatePicker = true }
+                    onClick = { viewModel.onEvent(CreateReminderEvents.OpenDatePicker) }
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                RepeatDropDown(
+                RepeatDropdown(
                     repeat = repeat,
                     showRepeatDropdownMenu = showRepeatDropdownMenu,
                     onRepeatValueChange = { repeat = it },
-                    toggleDropDown = { showRepeatDropdownMenu = it }
+                    toggleDropDown = { viewModel.onEvent(CreateReminderEvents.ToggleDropdown(isOpen = it)) }
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Categories(
-                categories = categories,
+                categories = categories!!,
                 selectedCategories = selectedCategories,
                 onCategoryClick = { index, isSelected ->
                     if (isSelected)
-                        selectedCategories.remove(categories[index])
+                        selectedCategories.remove(categories!![index])
                     else
-                        selectedCategories.add(categories[index])
+                        selectedCategories.add(categories!![index])
                 },
-                onEvent = viewModel::onEvent
+                onCreateCategoryClick = {
+                    viewModel.onEvent(
+                        CreateReminderEvents.OpenCreateCategoryAlert
+                    )
+                }
             )
         }
     }
@@ -353,7 +319,7 @@ private fun BottomBar(
     isPinned: Boolean,
     repeat: ReminderRepeatTypes,
     selectedCategories: List<String>,
-    calendar: Calendar
+    calendar: Calendar,
 ) {
     BottomAppBar(
         backgroundColor = MaterialTheme.colors.background
@@ -402,210 +368,11 @@ private fun BottomBar(
 }
 
 @Composable
-private fun RepeatDropDown(
-    repeat: ReminderRepeatTypes,
-    onRepeatValueChange: (ReminderRepeatTypes) -> Unit,
-    showRepeatDropdownMenu: Boolean,
-    toggleDropDown: (Boolean) -> Unit
-) {
-
-    Column {
-        OutlinedPicker(
-            value = when (repeat) {
-                ReminderRepeatTypes.ONCE -> "Once"
-                ReminderRepeatTypes.DAILY -> "Daily"
-                ReminderRepeatTypes.WEEKLY -> "Weekly"
-                ReminderRepeatTypes.MONTHLY -> "Monthly"
-                ReminderRepeatTypes.YEARLY -> "Yearly"
-                else -> ""
-            },
-            placeholder = "Repeat",
-            trailingIcon = Icons.Outlined.Repeat,
-            onClick = { toggleDropDown(true) }
-        )
-
-        DropdownMenu(
-            expanded = showRepeatDropdownMenu,
-            onDismissRequest = { toggleDropDown(false) }
-        ) {
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.ONCE)
-                toggleDropDown(false)
-            }) {
-                Text(text = "Once")
-            }
-
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.DAILY)
-                toggleDropDown(false)
-            }) {
-                Text(text = "Daily")
-            }
-
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.WEEKLY)
-                toggleDropDown(false)
-            }) {
-                Text(text = "Weekly")
-            }
-
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.MONTHLY)
-                toggleDropDown(false)
-            }) {
-                Text(text = "Monthly")
-            }
-
-            DropdownMenuItem(onClick = {
-                onRepeatValueChange(ReminderRepeatTypes.YEARLY)
-                toggleDropDown(false)
-            }) {
-                Text(text = "Yearly")
-            }
-        }
-    }
-}
-
-@ExperimentalMaterialApi
-@Composable
-private fun Categories(
-    categories: List<String>,
-    selectedCategories: List<String>,
-    onCategoryClick: (index: Int, isSelected: Boolean) -> Unit,
-    onEvent: (CreateReminderEvents) -> Unit
-) {
-    Column {
-        Text(text = "Categories")
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        FlowRow(
-            crossAxisSpacing = 10.dp,
-            mainAxisSpacing = 10.dp
-        ) {
-            repeat(categories.size) { index ->
-                val isSelected = selectedCategories.contains(categories[index])
-
-                val backgroundColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.primary else MaterialTheme.colors.background)
-
-                val textColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.background else MaterialTheme.colors.primary)
-
-                if (index != categories.size - 1)
-                    Card(
-                        onClick = {
-                            onCategoryClick(index, isSelected)
-                        }
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(backgroundColor)
-                                .padding(horizontal = 15.dp, vertical = 5.dp),
-                        ) {
-                            Text(
-                                text = categories[index],
-                                color = textColor
-                            )
-                        }
-                    }
-                else
-                    CreateNewCategoryButton(onEvent = onEvent)
-            }
-        }
-    }
-}
-
-@ExperimentalMaterialApi
-@Composable
-private fun CreateNewCategoryButton(
-    onEvent: (CreateReminderEvents) -> Unit,
-) {
-    Card(
-        onClick = {
-            onEvent(CreateReminderEvents.OnCreateCategoryAlertClick)
-        }
-    ) {
-        Row(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colors.background)
-                .padding(horizontal = 15.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Create new category",
-                color = MaterialTheme.colors.primary
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Icon(
-                Icons.Rounded.Add,
-                contentDescription = null,
-                tint = MaterialTheme.colors.primary
-            )
-        }
-    }
-}
-
-@Composable
-private fun Pinned(
-    isPinned: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier.clickable {
-            onCheckedChange(!isPinned)
-        },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(
-            checked = isPinned,
-            onCheckedChange = onCheckedChange
-        )
-        Text(text = "Pinned")
-    }
-}
-
-@Composable
-private fun DetailsOutlinedTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    errorMessage: String? = null
-) {
-    Column(
-        modifier = Modifier.animateContentSize()
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
-                )
-            },
-            textStyle = MaterialTheme.typography.body2,
-            isError = !errorMessage.isNullOrEmpty()
-        )
-
-        if (!errorMessage.isNullOrEmpty()) {
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = errorMessage,
-                fontSize = MaterialTheme.typography.caption.fontSize,
-                color = Red800
-            )
-        }
-    }
-}
-
-@Composable
-private fun OutlinedPicker(
+fun OutlinedPicker(
     value: String,
     placeholder: String,
     trailingIcon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
 
     OutlinedTextField(
@@ -632,36 +399,4 @@ private fun OutlinedPicker(
             onClick()
         }
     )
-}
-
-@Composable
-private fun SelectReminderCardColor(
-    colors: List<Color>,
-    selectedColorIndex: Int,
-    onClick: (Int) -> Unit
-) {
-    FlowRow(
-        mainAxisSpacing = 15.dp,
-        crossAxisSpacing = 10.dp,
-    ) {
-        repeat(colors.size) { index ->
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(colors[index])
-                    .size(42.dp)
-                    .clickable {
-                        onClick(index)
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                if (selectedColorIndex == index)
-                    Icon(
-                        Icons.Rounded.Check,
-                        contentDescription = "Selected",
-                        tint = MaterialTheme.colors.primary
-                    )
-            }
-        }
-    }
 }

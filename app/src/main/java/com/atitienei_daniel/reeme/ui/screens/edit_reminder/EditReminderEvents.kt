@@ -17,8 +17,7 @@ sealed class EditReminderEvents {
     object DismissTimePicker: EditReminderEvents()
 
     /* Dropdown */
-    object ShowDropdown: EditReminderEvents()
-    object CloseDropdown: EditReminderEvents()
+    data class ToggleDropdown(val isOpen: Boolean): EditReminderEvents()
 
     /* Checkbox */
     data class ToggleCheckBox(val isChecked: Boolean): EditReminderEvents()

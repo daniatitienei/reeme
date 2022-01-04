@@ -1,5 +1,4 @@
-
-package com.atitienei_daniel.reeme.ui.screens.utils
+package com.atitienei_daniel.reeme.ui.utils.components
 
 import android.app.TimePickerDialog
 import android.content.Context
