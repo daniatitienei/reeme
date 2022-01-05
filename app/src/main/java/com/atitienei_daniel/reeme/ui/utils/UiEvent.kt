@@ -13,4 +13,5 @@ sealed class UiEvent {
     data class DatePicker(val isOpen: Boolean = false): UiEvent()
     data class TimePicker(val isOpen: Boolean = false): UiEvent()
     data class Dropdown(val isOpen: Boolean = false): UiEvent()
+    data class CheckBox(val isChecked: Boolean = false): UiEvent()
 }

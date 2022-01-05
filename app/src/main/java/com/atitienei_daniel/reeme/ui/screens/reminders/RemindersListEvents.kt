@@ -4,9 +4,9 @@ import com.atitienei_daniel.reeme.domain.model.Reminder
 import remindersdb.ReminderEntity
 
 sealed class RemindersListEvents {
-    object onSearchClick: RemindersListEvents()
-    object onSettingsClick : RemindersListEvents()
-    object onFilterClick : RemindersListEvents()
-    data class onReminderClick(val reminder: ReminderEntity) : RemindersListEvents()
-    object onAddClick : RemindersListEvents()
+    object OnSearchClick: RemindersListEvents()
+    object OnSettingsClick : RemindersListEvents()
+    object OnFilterClick : RemindersListEvents()
+    data class OnReminderClick(val reminder: ReminderEntity) : RemindersListEvents()
+    object OnAddClick : RemindersListEvents()
 }

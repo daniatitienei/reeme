@@ -1,17 +1,17 @@
-package com.atitienei_daniel.reeme.data.datastore
+package com.atitienei_daniel.reeme.data.repository.datastore
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.atitienei_daniel.reeme.domain.repository.StoreCategoriesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class StoreCategories(
-    private val context: Context
-) {
+class StoreCategoriesRepositoryImpl(
+    private val context: Context,
+) : StoreCategoriesRepository {
 
     companion object {
         private val Context.datastore: DataStore<androidx.datastore.preferences.core.Preferences> by preferencesDataStore(
@@ -20,12 +20,13 @@ class StoreCategories(
         val CATEGORIES_KEY = stringPreferencesKey("categories")
     }
 
-    val getCategories: Flow<MutableList<String>?> = context.datastore.data
-        .map { preferences ->
-            return@map decode(databaseValue = preferences[CATEGORIES_KEY] ?: "")
-        }
+    override val getCategories: Flow<MutableList<String>?>
+        get() = context.datastore.data
+            .map { preferences ->
+                return@map decode(databaseValue = preferences[CATEGORIES_KEY] ?: "")
+            }
 
-    suspend fun insertCategory(categories: MutableList<String>) {
+    override suspend fun insertCategory(categories: MutableList<String>) {
         context.datastore.edit { preferences ->
             preferences[CATEGORIES_KEY] = encode(categories)
         }

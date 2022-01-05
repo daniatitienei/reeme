@@ -2,10 +2,13 @@ package com.atitienei_daniel.reeme.data.di
 
 import android.app.Application
 import com.atitienei_daniel.reeme.RemindersDatabase
-import com.atitienei_daniel.reeme.data.datastore.StoreCategories
+import com.atitienei_daniel.reeme.data.repository.datastore.StoreCategoriesRepositoryImpl
 import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSourceImpl
 import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSource
 import com.atitienei_daniel.reeme.data.reminders_db.RemindersDatabaseAdapters
+import com.atitienei_daniel.reeme.data.repository.datastore.StoreThemeRepositoryImpl
+import com.atitienei_daniel.reeme.domain.repository.StoreCategoriesRepository
+import com.atitienei_daniel.reeme.domain.repository.StoreThemeRepository
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.squareup.sqldelight.android.AndroidSqliteDriver
@@ -51,5 +54,9 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideStoreCategories(app: Application): StoreCategories = StoreCategories(context = app)
+    fun provideStoreCategories(app: Application): StoreCategoriesRepository = StoreCategoriesRepositoryImpl(context = app)
+
+    @Provides
+    @Singleton
+    fun provideTheme(app: Application): StoreThemeRepository = StoreThemeRepositoryImpl(context = app)
 }
