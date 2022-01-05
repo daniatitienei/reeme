@@ -1,6 +1,5 @@
 package com.atitienei_daniel.reeme.ui.screens.reminders.components
 
-import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,15 +10,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.ui.screens.reminders.RemindersListEvents
 import com.atitienei_daniel.reeme.ui.utils.dateToString
 import remindersdb.ReminderEntity
-import java.text.SimpleDateFormat
-import java.util.*
 
 @ExperimentalMaterialApi
 @Composable
@@ -30,7 +25,7 @@ fun ReminderCard(
     Card(
         backgroundColor = reminder.color,
         onClick = {
-            onEvent(RemindersListEvents.onReminderClick(reminder = reminder))
+            onEvent(RemindersListEvents.OnReminderClick(reminder = reminder))
         },
         elevation = 5.dp
     ) {

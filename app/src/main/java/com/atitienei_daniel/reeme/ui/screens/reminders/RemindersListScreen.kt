@@ -1,5 +1,6 @@
 package com.atitienei_daniel.reeme.ui.screens.reminders
 
+import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
@@ -11,7 +12,6 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -28,11 +28,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.atitienei_daniel.reeme.R
-import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.ui.screens.reminders.components.ReminderCard
 import com.atitienei_daniel.reeme.ui.theme.DarkBlue800
 import com.atitienei_daniel.reeme.ui.screens.reminders.components.StaggeredVerticalGrid
@@ -41,7 +39,6 @@ import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import remindersdb.ReminderEntity
-import java.util.*
 
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
@@ -50,11 +47,13 @@ import java.util.*
 @Composable
 fun RemindersListScreen(
     onNavigate: (UiEvent.Navigate) -> Unit,
-    viewModel: RemindersListViewModel = hiltViewModel()
+    viewModel: RemindersListViewModel = hiltViewModel(),
 ) {
     val state = viewModel.reminders.collectAsState(initial = emptyList()).value
 
     val backdropState = rememberBackdropScaffoldState(initialValue = BackdropValue.Concealed)
+
+    val categories by viewModel.categories.collectAsState(initial = mutableListOf())
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
@@ -71,15 +70,27 @@ fun RemindersListScreen(
         }
     }
 
-    val upcomingReminders = state.filter { reminder -> !reminder.isDone && !reminder.isPinned }
-    val pinnedReminders = state.filter { reminder -> reminder.isPinned && !reminder.isDone }
-    val completedReminders = state.filter { reminder -> reminder.isDone }
-
-    val scope = rememberCoroutineScope()
+    var selectedCategory by remember {
+        mutableStateOf("All")
+    }
 
     var searchBarValue by remember {
         mutableStateOf("")
     }
+
+    val upcomingReminders = state.filter { reminder -> !reminder.isDone && !reminder.isPinned }
+    val pinnedReminders = state.filter { reminder -> reminder.isPinned && !reminder.isDone }
+    val completedReminders = state.filter { reminder -> reminder.isDone }
+    val filteredReminders =
+        state.filter { reminder ->
+            (reminder.isDone && selectedCategory == "Completed") || reminder.categories!!.contains(
+                selectedCategory)
+        }
+    val searchResults = state.filter { reminder ->
+        if (searchBarValue.isNotEmpty()) reminder.title.contains(searchBarValue) else false
+    }
+
+    val scope = rememberCoroutineScope()
 
     val interactionSource = MutableInteractionSource()
 
@@ -117,24 +128,19 @@ fun RemindersListScreen(
             }
         },
         backLayerContent = {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(17) {
-                    ListItem(
-                        text = {
-                            Text(
-                                text = "Recent search ${it + 1}",
-                                style = MaterialTheme.typography.body2
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 15.dp, horizontal = 15.dp),
+            ) {
+                item {
+                    Crossfade(targetState = searchResults.isNotEmpty()) {
+                        if (it)
+                            ReminderCategory(
+                                categoryName = "Search results",
+                                reminders = searchResults,
+                                onEvent = viewModel::onEvent
                             )
-                        },
-                        icon = {
-                            Icon(
-                                Icons.Rounded.History,
-                                contentDescription = null,
-                                tint = MaterialTheme.colors.primary
-                            )
-                        },
-                        modifier = Modifier.clickable { }
-                    )
+                    }
                 }
             }
         },
@@ -143,7 +149,7 @@ fun RemindersListScreen(
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = {
-                            viewModel.onEvent(RemindersListEvents.onAddClick)
+                            viewModel.onEvent(RemindersListEvents.OnAddClick)
                         }
                     ) {
                         Icon(Icons.Rounded.Add, contentDescription = null)
@@ -165,17 +171,35 @@ fun RemindersListScreen(
                             FlowRow(
                                 mainAxisSpacing = 10.dp
                             ) {
-                                repeat(10) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Checkbox(
-                                            checked = false,
-                                            onCheckedChange = { /*TODO*/ })
-                                        Text(
-                                            text = "Work $it",
-                                            style = MaterialTheme.typography.body2
-                                        )
+                                TextAndRadioButton(
+                                    title = "All",
+                                    selected = selectedCategory == "All",
+                                    onClick = { selectedCategory = it }
+                                )
+
+                                TextAndRadioButton(
+                                    title = "Completed",
+                                    selected = selectedCategory == "Completed",
+                                    onClick = { selectedCategory = it }
+                                )
+
+                                categories?.let { categories ->
+                                    repeat(categories.size) { index ->
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.clickable {
+                                                selectedCategory = categories[index]
+                                            }
+                                        ) {
+                                            RadioButton(
+                                                selected = selectedCategory == categories[index],
+                                                onClick = { selectedCategory = categories[index] }
+                                            )
+                                            Text(
+                                                text = categories[index],
+                                                style = MaterialTheme.typography.body2
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -185,31 +209,41 @@ fun RemindersListScreen(
                     }
 
                     item {
-                        if (pinnedReminders.isNotEmpty()) {
+                        if (pinnedReminders.isNotEmpty() && selectedCategory == "All") {
                             ReminderCategory(
                                 categoryName = "Pinned",
                                 reminders = pinnedReminders,
-                                viewModel = viewModel
+                                onEvent = viewModel::onEvent
                             )
                         }
                     }
 
                     item {
 
-                        if (upcomingReminders.isNotEmpty()) {
+                        if (upcomingReminders.isNotEmpty() && selectedCategory == "All") {
                             ReminderCategory(
                                 categoryName = "Upcoming",
                                 reminders = upcomingReminders,
-                                viewModel = viewModel
+                                onEvent = viewModel::onEvent
                             )
                         }
                     }
                     item {
-                        if (completedReminders.isNotEmpty()) {
+                        if (completedReminders.isNotEmpty() && selectedCategory == "All") {
                             ReminderCategory(
                                 categoryName = "Completed",
                                 reminders = completedReminders,
-                                viewModel = viewModel
+                                onEvent = viewModel::onEvent
+                            )
+                        }
+                    }
+
+                    item {
+                        if (filteredReminders.isNotEmpty()) {
+                            ReminderCategory(
+                                categoryName = "Filtered",
+                                reminders = filteredReminders,
+                                onEvent = viewModel::onEvent
                             )
                         }
                     }
@@ -223,40 +257,66 @@ fun RemindersListScreen(
     )
 }
 
+@Composable
+private fun TextAndRadioButton(
+    title: String,
+    onClick: (String) -> Unit,
+    selected: Boolean,
+) {
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable {
+            onClick(title)
+        }
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = { onClick(title) }
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.body2
+        )
+    }
+}
+
 @ExperimentalMaterialApi
 @Composable
 private fun ReminderCategory(
     categoryName: String,
     reminders: List<ReminderEntity>,
-    viewModel: RemindersListViewModel
+    onEvent: (RemindersListEvents) -> Unit,
 ) {
-    Text(text = categoryName)
+    Column {
+        Text(text = categoryName)
 
-    Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-    StaggeredVerticalGrid {
-        repeat(reminders.size) {
-            Box(
-                modifier = Modifier
-                    .padding(bottom = 10.dp, start = 5.dp, end = 5.dp)
-                    .fillMaxWidth()
-                    .wrapContentWidth(align = Alignment.CenterHorizontally)
-            ) {
+        StaggeredVerticalGrid {
+            repeat(reminders.size) {
+                Box(
+                    modifier = Modifier
+                        .padding(bottom = 10.dp, start = 5.dp, end = 5.dp)
+                        .fillMaxWidth()
+                        .wrapContentWidth(align = Alignment.CenterHorizontally)
+                ) {
 
-                ReminderCard(
-                    reminder = ReminderEntity(
-                        title = reminders[it].title,
-                        description = reminders[it].description,
-                        isDone = reminders[it].isDone,
-                        isPinned = reminders[it].isPinned,
-                        categories = reminders[it].categories,
-                        color = reminders[it].color,
-                        repeat = reminders[it].repeat,
-                        date = reminders[it].date,
-                        id = reminders[it].id
-                    ),
-                    onEvent = viewModel::onEvent
-                )
+                    ReminderCard(
+                        reminder = ReminderEntity(
+                            title = reminders[it].title,
+                            description = reminders[it].description,
+                            isDone = reminders[it].isDone,
+                            isPinned = reminders[it].isPinned,
+                            categories = reminders[it].categories,
+                            color = reminders[it].color,
+                            repeat = reminders[it].repeat,
+                            date = reminders[it].date,
+                            id = reminders[it].id
+                        ),
+                        onEvent = onEvent
+                    )
+                }
             }
         }
     }
@@ -266,14 +326,14 @@ private fun ReminderCategory(
 private fun TopBar(
     onEvent: (RemindersListEvents) -> Unit,
     isFilterOpened: Boolean,
-    title: String
+    title: String,
 ) {
     TopAppBar(
         title = { Text(text = title) },
         actions = {
             IconButton(
                 onClick = {
-                    onEvent(RemindersListEvents.onSearchClick)
+                    onEvent(RemindersListEvents.OnSearchClick)
                 }
             ) {
                 Icon(Icons.Rounded.Search, contentDescription = null)
@@ -281,7 +341,7 @@ private fun TopBar(
 
             IconButton(
                 onClick = {
-                    onEvent(RemindersListEvents.onFilterClick)
+                    onEvent(RemindersListEvents.OnFilterClick)
                 }
             ) {
                 Crossfade(targetState = isFilterOpened) { isOpen ->
@@ -297,7 +357,7 @@ private fun TopBar(
 
             IconButton(
                 onClick = {
-                    onEvent(RemindersListEvents.onSettingsClick)
+                    onEvent(RemindersListEvents.OnSettingsClick)
                 }
             ) {
                 Icon(Icons.Outlined.Settings, contentDescription = null)

@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.ui.theme.*
-import com.atitienei_daniel.reeme.ui.screens.utils.ShowDatePicker
-import com.atitienei_daniel.reeme.ui.screens.utils.ShowTimePicker
+import com.atitienei_daniel.reeme.ui.utils.components.ShowDatePicker
+import com.atitienei_daniel.reeme.ui.utils.components.ShowTimePicker
 import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.components.*

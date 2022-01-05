@@ -14,6 +14,7 @@ import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.ui.screens.create_reminder.CreateReminderScreen
 import com.atitienei_daniel.reeme.ui.screens.edit_reminder.EditReminderScreen
 import com.atitienei_daniel.reeme.ui.screens.reminders.RemindersListScreen
+import com.atitienei_daniel.reeme.ui.screens.settings.SettingsScreen
 import com.atitienei_daniel.reeme.ui.utils.Routes
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
@@ -27,7 +28,7 @@ import com.squareup.moshi.Moshi
 @ExperimentalAnimationApi
 @Composable
 fun Navigation(
-    moshi: Moshi
+    moshi: Moshi,
 ) {
     val navController = rememberAnimatedNavController()
 
@@ -104,9 +105,40 @@ fun Navigation(
                         animationSpec = tween(700)
                     ) + fadeOut()
                 }
-            ) { backStackEntry ->
-
+            ) {
                 EditReminderScreen(onPopBackStack = {
+                    navController.popBackStack()
+                })
+            }
+
+            composable(
+                route = Routes.SETTINGS,
+                enterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { 1000 },
+                        animationSpec = tween(700)
+                    ) + fadeIn()
+                },
+                popEnterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { 1000 },
+                        animationSpec = tween(700)
+                    ) + fadeIn()
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { 1000 },
+                        animationSpec = tween(700)
+                    ) + fadeOut()
+                },
+                popExitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { 1000 },
+                        animationSpec = tween(700)
+                    ) + fadeOut()
+                }
+            ) {
+                SettingsScreen(onPopBackStack = {
                     navController.popBackStack()
                 })
             }

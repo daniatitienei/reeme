@@ -11,6 +11,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
+import com.atitienei_daniel.reeme.ui.screens.settings.SettingsScreen
 import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.squareup.moshi.Moshi
@@ -42,7 +43,6 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Navigation(moshi = moshi)
-
             }
         }
     }
