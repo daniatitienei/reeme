@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.atitienei_daniel.reeme.ui.screens.reminders.RemindersListEvents
+import com.atitienei_daniel.reeme.ui.theme.DarkBlue800
 import com.atitienei_daniel.reeme.ui.utils.dateToString
 import remindersdb.ReminderEntity
 
@@ -36,6 +37,7 @@ fun ReminderCard(
                 text = reminder.title,
                 style = MaterialTheme.typography.h6,
                 textAlign = TextAlign.Center,
+                color = DarkBlue800,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -45,6 +47,7 @@ fun ReminderCard(
                 Text(
                     text = reminder.description,
                     style = MaterialTheme.typography.body2,
+                    color = DarkBlue800,
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -54,7 +57,7 @@ fun ReminderCard(
                 modifier = Modifier
                     .border(
                         width = 1.dp,
-                        color = MaterialTheme.colors.primary,
+                        color = DarkBlue800,
                         shape = RoundedCornerShape(5.dp)
                     )
                     .padding(5.dp)
@@ -66,12 +69,14 @@ fun ReminderCard(
                     Text(
                         text = reminder.date.dateToString("dd/MM/yyyy"),
                         style = MaterialTheme.typography.body2,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        color = DarkBlue800,
                     )
                     Text(
                         text = reminder.date.dateToString("HH:mm a"),
                         style = MaterialTheme.typography.body2,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        color = DarkBlue800,
                     )
                 }
             }

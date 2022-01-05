@@ -1,15 +1,13 @@
 package com.atitienei_daniel.reeme.ui.screens.create_reminder
 
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.atitienei_daniel.reeme.data.datastore.StoreCategories
+import com.atitienei_daniel.reeme.data.repository.datastore.StoreCategoriesRepositoryImpl
 import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSource
+import com.atitienei_daniel.reeme.domain.repository.StoreCategoriesRepository
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
-import com.atitienei_daniel.reeme.ui.utils.dateToString
-import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateReminderViewModel @Inject constructor(
     private val repository: RemindersDataSource,
-    private val storeCategories: StoreCategories,
+    private val storeCategoriesRepositoryImpl: StoreCategoriesRepository,
 ) : ViewModel() {
 
     private var _titleError = mutableStateOf<String?>(null)
@@ -29,11 +27,11 @@ class CreateReminderViewModel @Inject constructor(
     private var _uiEvent = MutableSharedFlow<UiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    fun getCategories(): Flow<MutableList<String>?> = storeCategories.getCategories
+    fun getCategories(): Flow<MutableList<String>?> = storeCategoriesRepositoryImpl.getCategories
 
     private fun insertCategory(categories: MutableList<String>) {
         viewModelScope.launch {
-            storeCategories.insertCategory(categories = categories)
+            storeCategoriesRepositoryImpl.insertCategory(categories = categories)
         }
     }
 

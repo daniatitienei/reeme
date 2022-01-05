@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.enums.Theme
@@ -32,7 +33,7 @@ import kotlinx.coroutines.flow.collect
 @Composable
 fun SettingsScreen(
     onPopBackStack: (UiEvent) -> Unit,
-    viewModel: SettingsViewModel = viewModel(),
+    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
 
     var themeIsExpanded by remember {
@@ -41,9 +42,7 @@ fun SettingsScreen(
 
     val arrowRotationAnimation by animateFloatAsState(targetValue = if (themeIsExpanded) 180f else 0f)
 
-    var currentTheme by remember {
-        mutableStateOf(Theme.AUTO)
-    }
+    val currentTheme by viewModel.theme.collectAsState(initial = Theme.AUTO)
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
@@ -125,7 +124,7 @@ fun SettingsScreen(
                             text = "Auto",
                             selected = currentTheme == Theme.AUTO,
                             onClick = {
-                                currentTheme = Theme.AUTO
+                                viewModel.onEvent(SettingsEvents.OnChangeThemeClick(Theme.AUTO))
                             },
                             icon = Icons.Outlined.SettingsSuggest
                         )
@@ -133,7 +132,7 @@ fun SettingsScreen(
                             text = "Light",
                             selected = currentTheme == Theme.LIGHT,
                             onClick = {
-                                currentTheme = Theme.LIGHT
+                                viewModel.onEvent(SettingsEvents.OnChangeThemeClick(Theme.LIGHT))
                             },
                             icon = Icons.Outlined.DarkMode
                         )
@@ -141,7 +140,7 @@ fun SettingsScreen(
                             text = "Dark",
                             selected = currentTheme == Theme.DARK,
                             onClick = {
-                                currentTheme = Theme.DARK
+                                viewModel.onEvent(SettingsEvents.OnChangeThemeClick(Theme.DARK))
                             },
                             icon = Icons.Rounded.DarkMode
                         )
@@ -161,10 +160,16 @@ fun SettingsScreen(
                 ListItem(
                     text = { Text(text = "Feedback") },
                     icon = {
-                        Icon(Icons.Outlined.Feedback, contentDescription = "Feedback")
+                        Icon(
+                            Icons.Outlined.Feedback,
+                            contentDescription = "Feedback",
+                            tint = MaterialTheme.colors.primary
+                        )
                     }
                 )
             }
+
+            Spacer(modifier = Modifier.height(5.dp))
 
             Card(
                 onClick = { /*TODO*/ }
@@ -172,7 +177,11 @@ fun SettingsScreen(
                 ListItem(
                     text = { Text(text = "Privacy policy") },
                     icon = {
-                        Icon(Icons.Outlined.Policy, contentDescription = "Feedback")
+                        Icon(
+                            Icons.Outlined.Policy,
+                            contentDescription = "Feedback",
+                            tint = MaterialTheme.colors.primary
+                        )
                     }
                 )
             }

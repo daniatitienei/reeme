@@ -1,13 +1,13 @@
 package com.atitienei_daniel.reeme.ui.screens.edit_reminder
 
-import android.util.Log
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.atitienei_daniel.reeme.data.datastore.StoreCategories
+import com.atitienei_daniel.reeme.data.repository.datastore.StoreCategoriesRepositoryImpl
 import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSource
+import com.atitienei_daniel.reeme.domain.repository.StoreCategoriesRepository
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class EditReminderViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: RemindersDataSource,
-    private val storeCategories: StoreCategories,
+    private val storeCategoriesRepositoryImpl: StoreCategoriesRepository,
 ) : ViewModel() {
 
     private var _uiEvent = MutableSharedFlow<UiEvent>()
@@ -73,11 +73,11 @@ class EditReminderViewModel @Inject constructor(
         }
     }
 
-    fun getCategories(): Flow<MutableList<String>?> = storeCategories.getCategories
+    fun getCategories(): Flow<MutableList<String>?> = storeCategoriesRepositoryImpl.getCategories
 
     private fun insertCategory(categories: MutableList<String>) {
         viewModelScope.launch {
-            storeCategories.insertCategory(categories = categories)
+            storeCategoriesRepositoryImpl.insertCategory(categories = categories)
         }
     }
 

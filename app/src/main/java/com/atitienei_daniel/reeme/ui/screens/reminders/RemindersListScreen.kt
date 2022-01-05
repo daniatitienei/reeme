@@ -97,7 +97,7 @@ fun RemindersListScreen(
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     val searchIconColor by animateColorAsState(
-        targetValue = if (isFocused && searchBarValue.isNotEmpty()) DarkBlue800 else DarkBlue800.copy(
+        targetValue = if (isFocused && searchBarValue.isNotEmpty()) MaterialTheme.colors.primary else MaterialTheme.colors.primary.copy(
             alpha = 0.5f
         ), animationSpec = tween(300)
     )
@@ -221,6 +221,7 @@ fun RemindersListScreen(
                     item {
 
                         if (upcomingReminders.isNotEmpty() && selectedCategory == "All") {
+                            Spacer(modifier = Modifier.height(10.dp))
                             ReminderCategory(
                                 categoryName = "Upcoming",
                                 reminders = upcomingReminders,
@@ -230,6 +231,7 @@ fun RemindersListScreen(
                     }
                     item {
                         if (completedReminders.isNotEmpty() && selectedCategory == "All") {
+                            Spacer(modifier = Modifier.height(10.dp))
                             ReminderCategory(
                                 categoryName = "Completed",
                                 reminders = completedReminders,
@@ -240,6 +242,7 @@ fun RemindersListScreen(
 
                     item {
                         if (filteredReminders.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(10.dp))
                             ReminderCategory(
                                 categoryName = "Filtered",
                                 reminders = filteredReminders,

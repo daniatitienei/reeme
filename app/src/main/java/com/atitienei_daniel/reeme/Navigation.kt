@@ -5,20 +5,26 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import com.atitienei_daniel.reeme.domain.model.Reminder
+import com.atitienei_daniel.reeme.domain.repository.StoreThemeRepository
 import com.atitienei_daniel.reeme.ui.screens.create_reminder.CreateReminderScreen
 import com.atitienei_daniel.reeme.ui.screens.edit_reminder.EditReminderScreen
 import com.atitienei_daniel.reeme.ui.screens.reminders.RemindersListScreen
 import com.atitienei_daniel.reeme.ui.screens.settings.SettingsScreen
 import com.atitienei_daniel.reeme.ui.utils.Routes
+import com.atitienei_daniel.reeme.ui.utils.enums.Theme
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.squareup.moshi.Moshi
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -28,9 +34,27 @@ import com.squareup.moshi.Moshi
 @ExperimentalAnimationApi
 @Composable
 fun Navigation(
-    moshi: Moshi,
+    repository: StoreThemeRepository
 ) {
+    val currentTheme = repository.getTheme.collectAsState(initial = Theme.AUTO).value
+
+    val systemTheme = isSystemInDarkTheme()
+    val background = MaterialTheme.colors.background
+
+
     val navController = rememberAnimatedNavController()
+    val systemUiController = rememberSystemUiController()
+
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = background,
+            darkIcons = when (currentTheme) {
+                Theme.AUTO -> !systemTheme
+                Theme.LIGHT -> true
+                Theme.DARK -> false
+            }
+        )
+    }
 
     Scaffold(
         backgroundColor = MaterialTheme.colors.background

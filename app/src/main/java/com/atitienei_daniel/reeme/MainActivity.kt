@@ -7,12 +7,15 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.graphics.Color
-import com.atitienei_daniel.reeme.ui.screens.settings.SettingsScreen
+import com.atitienei_daniel.reeme.domain.repository.StoreThemeRepository
 import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
+import com.atitienei_daniel.reeme.ui.utils.enums.Theme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,23 +29,24 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var moshi: Moshi
+    lateinit var repository: StoreThemeRepository
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ReemeTheme {
-                val systemUiController = rememberSystemUiController()
+            val currentTheme = repository.getTheme.collectAsState(initial = Theme.AUTO).value
 
-                SideEffect {
-                    systemUiController.setSystemBarsColor(
-                        color = Color.White,
-                        darkIcons = true
-                    )
+            val systemTheme = isSystemInDarkTheme()
+
+            ReemeTheme(
+                isDarkTheme = when (currentTheme) {
+                    Theme.AUTO -> systemTheme
+                    Theme.LIGHT -> false
+                    Theme.DARK -> true
                 }
-
-                Navigation(moshi = moshi)
+            ) {
+                Navigation(repository = repository)
             }
         }
     }
