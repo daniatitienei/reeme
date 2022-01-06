@@ -20,15 +20,18 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.atitienei_daniel.reeme.ui.screens.edit_reminder.components.Tooltip
 import com.atitienei_daniel.reeme.ui.theme.Red900
 import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
 import com.atitienei_daniel.reeme.ui.utils.Constants
@@ -99,6 +102,18 @@ fun EditReminderScreen(
         mutableStateOf("")
     }
 
+    var year by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var month by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var dayOfMonth by remember {
+        mutableStateOf<Int?>(null)
+    }
+
     viewModel.color?.let {
         selectedColorIndex = colors.indexOf(viewModel.color)
     }
@@ -106,8 +121,10 @@ fun EditReminderScreen(
     if (showDatePicker)
         ShowDatePicker(
             context = context,
-            onDatePicked = { _, year, month, dayOfMonth ->
-                viewModel.date.set(year, month, dayOfMonth)
+            onDatePicked = { _, yearValue, monthValue, day ->
+                year = yearValue
+                month = monthValue
+                dayOfMonth = day
 
                 viewModel.onEvent(EditReminderEvents.DismissDatePicker)
                 viewModel.onEvent(EditReminderEvents.OpenTimePicker)
@@ -122,9 +139,9 @@ fun EditReminderScreen(
             context = context,
             onTimePicked = { _, hours, minutes ->
                 viewModel.date.set(
-                    viewModel.date.get(1),
-                    viewModel.date.get(2),
-                    viewModel.date.get(3),
+                    year!!,
+                    month!!,
+                    dayOfMonth!!,
                     hours,
                     minutes
                 )
@@ -276,13 +293,38 @@ private fun BottomAppBar(
     onEvent: (EditReminderEvents) -> Unit,
     isDone: Boolean,
 ) {
+    val state = remember {
+        mutableStateOf(true)
+    }
+
+    var howManyTimesDeleteButtonWasClicked by remember {
+        mutableStateOf(0)
+    }
+
     BottomAppBar(
         backgroundColor = MaterialTheme.colors.background
     ) {
-        DeleteButton(
-            onClick = { onEvent(EditReminderEvents.OnDeleteClick) },
-            modifier = Modifier.weight(1f)
-        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .wrapContentWidth(align = Alignment.CenterHorizontally)
+        ) {
+            if (howManyTimesDeleteButtonWasClicked == 1)
+                Tooltip(expanded = state) {
+                    Text(text = "Press one more time to delete")
+                }
+            DeleteButton(
+                onClick = {
+                    if (howManyTimesDeleteButtonWasClicked >= 2)
+                        onEvent(EditReminderEvents.OnDeleteClick)
+                    else howManyTimesDeleteButtonWasClicked++
+
+                    Log.d("delete_button", howManyTimesDeleteButtonWasClicked.toString())
+                },
+                modifier = Modifier
+            )
+
+        }
 
         SaveButton(
             onClick = { onEvent(EditReminderEvents.OnSaveClick) },
@@ -294,19 +336,6 @@ private fun BottomAppBar(
             modifier = Modifier.weight(1f),
             isDone = isDone
         )
-    }
-}
-
-@Composable
-fun Tooltip() {
-    Popup(alignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
-                .size(200.dp, 50.dp)
-                .background(Color.White, shape = RoundedCornerShape(16.dp))
-        ) {
-            Text(text = "sakdokdsoaok")
-        }
     }
 }
 

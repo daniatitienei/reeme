@@ -108,6 +108,18 @@ fun CreateReminderScreen(
         mutableStateOf(Calendar.getInstance())
     }
 
+    var year by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var month by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var dayOfMonth by remember {
+        mutableStateOf<Int?>(null)
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -139,10 +151,12 @@ fun CreateReminderScreen(
     if (isDatePickerOpen)
         ShowDatePicker(
             context = context,
-            onDatePicked = { newDate, year, month, dayOfMonth ->
+            onDatePicked = { newDate, yearValue, monthValue, day ->
                 date = newDate
 
-                calendar.set(year, month, dayOfMonth)
+                year = yearValue
+                month = monthValue
+                dayOfMonth = day
 
                 viewModel.onEvent(CreateReminderEvents.DismissDatePicker)
                 viewModel.onEvent(CreateReminderEvents.OpenTimePicker)
@@ -159,7 +173,7 @@ fun CreateReminderScreen(
 
                 time = newTime
 
-                calendar.set(calendar.get(1), calendar.get(2), calendar.get(3), hours, minutes)
+                calendar.set(year!!, month!!, dayOfMonth!!, hours, minutes)
 
                 viewModel.onEvent(CreateReminderEvents.DismissTimePicker)
             },
