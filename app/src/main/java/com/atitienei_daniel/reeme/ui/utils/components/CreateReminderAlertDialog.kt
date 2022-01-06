@@ -12,7 +12,6 @@ import com.atitienei_daniel.reeme.ui.theme.Red900
 fun CreateCategoryAlertDialog(
     newCategoryTitle: String,
     onValueChange: (String) -> Unit,
-    categories: MutableList<String>,
     onSaveClick: () -> Unit,
     onCancelClick: () -> Unit,
     onDismissRequest: () -> Unit,

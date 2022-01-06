@@ -1,13 +1,14 @@
 package com.atitienei_daniel.reeme.ui.screens.edit_reminder
 
+import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -15,21 +16,28 @@ import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.Save
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.atitienei_daniel.reeme.ui.theme.Red900
+import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
 import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.components.*
 import com.atitienei_daniel.reeme.ui.utils.dateToString
 import kotlinx.coroutines.flow.collect
 
+@ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
@@ -134,7 +142,6 @@ fun EditReminderScreen(
             onValueChange = {
                 newCategoryTitle = it
             },
-            categories = categories!!,
             onSaveClick = {
                 categories!!.add(newCategoryTitle)
                 newCategoryTitle = ""
@@ -263,6 +270,7 @@ fun EditReminderScreen(
     }
 }
 
+@ExperimentalFoundationApi
 @Composable
 private fun BottomAppBar(
     onEvent: (EditReminderEvents) -> Unit,
@@ -289,6 +297,20 @@ private fun BottomAppBar(
     }
 }
 
+@Composable
+fun Tooltip() {
+    Popup(alignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(200.dp, 50.dp)
+                .background(Color.White, shape = RoundedCornerShape(16.dp))
+        ) {
+            Text(text = "sakdokdsoaok")
+        }
+    }
+}
+
+@ExperimentalFoundationApi
 @Composable
 private fun DeleteButton(
     onClick: () -> Unit,

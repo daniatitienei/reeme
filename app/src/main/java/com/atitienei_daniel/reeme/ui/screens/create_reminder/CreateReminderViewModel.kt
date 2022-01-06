@@ -21,9 +21,6 @@ class CreateReminderViewModel @Inject constructor(
     private val storeCategoriesRepositoryImpl: StoreCategoriesRepository,
 ) : ViewModel() {
 
-    private var _titleError = mutableStateOf<String?>(null)
-    val titleError: State<String?> = _titleError
-
     private var _uiEvent = MutableSharedFlow<UiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 

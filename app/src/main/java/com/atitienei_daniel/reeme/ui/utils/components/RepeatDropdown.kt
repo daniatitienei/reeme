@@ -37,6 +37,13 @@ fun RepeatDropdown(
             onDismissRequest = { toggleDropDown(false) }
         ) {
             DropdownMenuItem(onClick = {
+                onRepeatValueChange(ReminderRepeatTypes.UNSELECTED)
+                toggleDropDown(false)
+            }) {
+                Text(text = "Remove")
+            }
+
+            DropdownMenuItem(onClick = {
                 onRepeatValueChange(ReminderRepeatTypes.ONCE)
                 toggleDropDown(false)
             }) {
