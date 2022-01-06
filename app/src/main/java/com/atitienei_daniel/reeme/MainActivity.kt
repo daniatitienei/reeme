@@ -13,6 +13,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.atitienei_daniel.reeme.domain.repository.StoreThemeRepository
 import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
 import com.atitienei_daniel.reeme.ui.utils.enums.Theme
@@ -34,6 +35,9 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        installSplashScreen()
+
         setContent {
             val currentTheme = repository.getTheme.collectAsState(initial = Theme.AUTO).value
 

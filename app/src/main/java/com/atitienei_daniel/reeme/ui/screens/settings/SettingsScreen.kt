@@ -17,18 +17,24 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.SettingsSuggest
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.enums.Theme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.airbnb.lottie.compose.*
+import com.atitienei_daniel.reeme.ui.theme.Red900
 import kotlinx.coroutines.flow.collect
 
+@ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @Composable
 fun SettingsScreen(
@@ -44,6 +50,10 @@ fun SettingsScreen(
 
     val currentTheme by viewModel.theme.collectAsState(initial = Theme.AUTO)
 
+    var showFeedbackAlertDialog by remember {
+        mutableStateOf(false)
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -54,6 +64,11 @@ fun SettingsScreen(
             }
         }
     }
+
+    if (showFeedbackAlertDialog)
+        Feedback(
+            onDismissRequest = { showFeedbackAlertDialog = false }
+        )
 
     Scaffold(
         topBar = {
@@ -97,7 +112,15 @@ fun SettingsScreen(
             ) {
                 Column {
                     ListItem(
-                        text = { Text(text = "Auto") },
+                        text = {
+                            Text(
+                                text = when (currentTheme) {
+                                    Theme.AUTO -> "Auto"
+                                    Theme.LIGHT -> "Light"
+                                    else -> "Dark"
+                                },
+                            )
+                        },
                         icon = {
                             Icon(
                                 when (currentTheme) {
@@ -155,7 +178,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Card(
-                onClick = { /*TODO*/ }
+                onClick = { showFeedbackAlertDialog = true }
             ) {
                 ListItem(
                     text = { Text(text = "Feedback") },
@@ -189,9 +212,80 @@ fun SettingsScreen(
     }
 }
 
+@ExperimentalComposeUiApi
+@Composable
+private fun Feedback(
+    onDismissRequest: () -> Unit,
+) {
+    val composition by rememberLottieComposition(
+        spec = LottieCompositionSpec.Asset("animations/feedback.json")
+    )
+
+    val progress by animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever,
+    )
+
+    var feedbackTextValue by remember {
+        mutableStateOf("")
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        ),
+        modifier = Modifier.padding(40.dp),
+        buttons = {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LottieAnimation(composition = composition,
+                    progress = progress,
+                    modifier = Modifier.size(200.dp))
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = feedbackTextValue,
+                    onValueChange = { feedbackTextValue = it },
+                    placeholder = {
+                        Text(
+                            text = "Suggestions, bugs, etc...",
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.typography.body2.color.copy(alpha = 0.7f)
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row {
+                    TextButton(
+                        onClick = onDismissRequest,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Cancel", color = Red900)
+                    }
+
+                    TextButton(
+                        onClick = { /*TODO*/ },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Save", color = MaterialTheme.colors.primary)
+                    }
+                }
+            }
+        }
+    )
+}
+
 @ExperimentalMaterialApi
 @Composable
-fun ListItemWithRadioButton(
+private fun ListItemWithRadioButton(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
@@ -209,13 +303,4 @@ fun ListItemWithRadioButton(
                 onClick()
             }
     )
-}
-
-@ExperimentalMaterialApi
-@Preview(showBackground = true)
-@Composable
-private fun SettingsPreview() {
-    ReemeTheme {
-        SettingsScreen({})
-    }
 }

@@ -10,6 +10,8 @@
     <color name="dark_blue_900">#FF000b36</color>
     <color name="dark_blue_800">#FF253260</color>
     <color name="dark_blue_700">#FF525b8e</color>
+    <color name="dark_blue_500">#FF8899D4</color>
+    <color name="dark_blue_400">#FF9EAEE5</color>
     <color name="red_900">#FFF86969</color>
     <color name="blue_900">#FF69BCF8</color>
     <color name="yellow_900">#FFFAFE4E</color>

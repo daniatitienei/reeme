@@ -17,32 +17,17 @@ fun OutlinedTextFieldWithErrorText(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    errorMessage: String? = null,
 ) {
-    Column(
-        modifier = Modifier.animateContentSize()
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = {
-                Text(
-                    text = placeholder,
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
-                )
-            },
-            textStyle = MaterialTheme.typography.body2,
-            isError = !errorMessage.isNullOrEmpty()
-        )
-
-        if (!errorMessage.isNullOrEmpty()) {
-            Spacer(modifier = Modifier.height(2.dp))
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = {
             Text(
-                text = errorMessage,
-                fontSize = MaterialTheme.typography.caption.fontSize,
-                color = Red800
+                text = placeholder,
+                style = MaterialTheme.typography.body2,
+                color = MaterialTheme.colors.primary.copy(alpha = 0.5f)
             )
-        }
-    }
+        },
+        textStyle = MaterialTheme.typography.body2,
+    )
 }

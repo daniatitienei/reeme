@@ -53,6 +53,10 @@ android {
 }
 
 dependencies {
+    /* Lottie */
+    def lottieVersion = "4.2.2"
+    implementation "com.airbnb.android:lottie-compose:$lottieVersion"
+
     /* Datastore */
     implementation "androidx.datastore:datastore-preferences:1.0.0"
     implementation "androidx.datastore:datastore-preferences-core:1.0.0"
@@ -87,6 +91,9 @@ dependencies {
 
     /* Material */
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
+
+    /* Splash screen */
+    implementation("androidx.core:core-splashscreen:1.0.0-alpha02")
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.0'

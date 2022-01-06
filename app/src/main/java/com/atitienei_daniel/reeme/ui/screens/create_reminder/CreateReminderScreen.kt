@@ -2,6 +2,7 @@ package com.atitienei_daniel.reeme.ui.screens.create_reminder
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -13,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -106,6 +108,18 @@ fun CreateReminderScreen(
         mutableStateOf(Calendar.getInstance())
     }
 
+    var year by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var month by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var dayOfMonth by remember {
+        mutableStateOf<Int?>(null)
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -137,10 +151,12 @@ fun CreateReminderScreen(
     if (isDatePickerOpen)
         ShowDatePicker(
             context = context,
-            onDatePicked = { newDate, year, month, dayOfMonth ->
+            onDatePicked = { newDate, yearValue, monthValue, day ->
                 date = newDate
 
-                calendar.set(year, month, dayOfMonth)
+                year = yearValue
+                month = monthValue
+                dayOfMonth = day
 
                 viewModel.onEvent(CreateReminderEvents.DismissDatePicker)
                 viewModel.onEvent(CreateReminderEvents.OpenTimePicker)
@@ -157,7 +173,7 @@ fun CreateReminderScreen(
 
                 time = newTime
 
-                calendar.set(calendar.get(1), calendar.get(2), calendar.get(3), hours, minutes)
+                calendar.set(year!!, month!!, dayOfMonth!!, hours, minutes)
 
                 viewModel.onEvent(CreateReminderEvents.DismissTimePicker)
             },
@@ -172,8 +188,10 @@ fun CreateReminderScreen(
             onValueChange = {
                 newCategoryTitle = it
             },
-            categories = categories!!,
             onSaveClick = {
+                if (newCategoryTitle.isEmpty())
+                    return@CreateCategoryAlertDialog
+
                 categories!!.add(newCategoryTitle)
                 newCategoryTitle = ""
                 viewModel.onEvent(CreateReminderEvents.InsertCategory(categories = categories!!))
@@ -229,7 +247,6 @@ fun CreateReminderScreen(
                     value = title,
                     onValueChange = { title = it },
                     placeholder = "Enter title",
-                    errorMessage = viewModel.titleError.value
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -286,6 +303,27 @@ fun CreateReminderScreen(
                     onRepeatValueChange = { repeat = it },
                     toggleDropDown = { viewModel.onEvent(CreateReminderEvents.ToggleDropdown(isOpen = it)) }
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Crossfade(targetState = repeat) {
+                    if (it == ReminderRepeatTypes.UNSELECTED) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                Icons.Outlined.NotificationsOff,
+                                contentDescription = null,
+                                tint = MaterialTheme.colors.primary
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "You won't be notified.",
+                                style = MaterialTheme.typography.body2
+                            )
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
