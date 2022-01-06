@@ -112,7 +112,15 @@ fun SettingsScreen(
             ) {
                 Column {
                     ListItem(
-                        text = { Text(text = "Auto") },
+                        text = {
+                            Text(
+                                text = when (currentTheme) {
+                                    Theme.AUTO -> "Auto"
+                                    Theme.LIGHT -> "Light"
+                                    else -> "Dark"
+                                },
+                            )
+                        },
                         icon = {
                             Icon(
                                 when (currentTheme) {
@@ -295,14 +303,4 @@ private fun ListItemWithRadioButton(
                 onClick()
             }
     )
-}
-
-@ExperimentalComposeUiApi
-@ExperimentalMaterialApi
-@Preview(showBackground = true)
-@Composable
-private fun SettingsPreview() {
-    ReemeTheme {
-        SettingsScreen({})
-    }
 }
