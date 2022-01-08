@@ -1,5 +1,8 @@
 package com.atitienei_daniel.reeme
 
+import android.app.AlarmManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,6 +16,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.atitienei_daniel.reeme.domain.repository.StoreThemeRepository
 import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
@@ -38,6 +42,12 @@ class MainActivity : ComponentActivity() {
 
         installSplashScreen()
 
+        createChannel(
+            name = "Reminders",
+            description = "",
+            channelId = "reminder"
+        )
+
         setContent {
             val currentTheme = repository.getTheme.collectAsState(initial = Theme.AUTO).value
 
@@ -52,6 +62,20 @@ class MainActivity : ComponentActivity() {
             ) {
                 Navigation(repository = repository)
             }
+        }
+    }
+
+    private fun createChannel(name: CharSequence, description: String, channelId: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(channelId, name, importance).apply {
+                this.description = description
+            }
+            val notificationMananger = getSystemService(
+                NotificationManager::class.java
+            )
+
+            notificationMananger.createNotificationChannel(channel)
         }
     }
 }

@@ -24,7 +24,8 @@ class CreateReminderViewModel @Inject constructor(
     private var _uiEvent = MutableSharedFlow<UiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    fun getCategories(): Flow<MutableList<String>?> = storeCategoriesRepositoryImpl.getCategories
+    val reminders = repository.getReminders()
+    val categories = storeCategoriesRepositoryImpl.getCategories
 
     private fun insertCategory(categories: MutableList<String>) {
         viewModelScope.launch {

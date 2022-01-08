@@ -25,9 +25,9 @@ class StoreThemeRepositoryImpl(
     override val getTheme: Flow<Theme>
         get() = context.datastore.data.map { preferences ->
             when (preferences[THEME_KEY]) {
-                0 -> Theme.AUTO
+                2 -> Theme.DARK
                 1 -> Theme.LIGHT
-                else -> Theme.DARK
+                else -> Theme.AUTO
             }
         }
 

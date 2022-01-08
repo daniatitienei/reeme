@@ -1,16 +1,21 @@
 package com.atitienei_daniel.reeme.ui.screens.create_reminder
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -18,27 +23,27 @@ import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.atitienei_daniel.reeme.data.receiver.AlarmReceiver
 import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.ui.theme.*
-import com.atitienei_daniel.reeme.ui.utils.components.ShowDatePicker
-import com.atitienei_daniel.reeme.ui.utils.components.ShowTimePicker
 import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.components.*
 import com.atitienei_daniel.reeme.ui.utils.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
-import com.google.accompanist.flowlayout.FlowRow
 import kotlinx.coroutines.flow.collect
 import java.util.*
 
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @RequiresApi(Build.VERSION_CODES.O)
 @ExperimentalMaterialApi
@@ -108,18 +113,6 @@ fun CreateReminderScreen(
         mutableStateOf(Calendar.getInstance())
     }
 
-    var year by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-    var month by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-    var dayOfMonth by remember {
-        mutableStateOf<Int?>(null)
-    }
-
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -146,17 +139,18 @@ fun CreateReminderScreen(
         }
     }
 
-    val categories by viewModel.getCategories().collectAsState(initial = mutableListOf())
+    val reminders = viewModel.reminders.collectAsState(initial = emptyList()).value
+    val categories = viewModel.categories.collectAsState(initial = mutableListOf()).value
 
     if (isDatePickerOpen)
         ShowDatePicker(
             context = context,
-            onDatePicked = { newDate, yearValue, monthValue, day ->
+            onDatePicked = { newDate, year, month, dayOfMonth ->
                 date = newDate
 
-                year = yearValue
-                month = monthValue
-                dayOfMonth = day
+                calendar[Calendar.YEAR] = year
+                calendar[Calendar.MONTH] = month
+                calendar[Calendar.DAY_OF_MONTH] = dayOfMonth
 
                 viewModel.onEvent(CreateReminderEvents.DismissDatePicker)
                 viewModel.onEvent(CreateReminderEvents.OpenTimePicker)
@@ -173,7 +167,8 @@ fun CreateReminderScreen(
 
                 time = newTime
 
-                calendar.set(year!!, month!!, dayOfMonth!!, hours, minutes)
+                calendar[Calendar.HOUR_OF_DAY] = hours
+                calendar[Calendar.MINUTE] = minutes
 
                 viewModel.onEvent(CreateReminderEvents.DismissTimePicker)
             },
@@ -194,7 +189,7 @@ fun CreateReminderScreen(
 
                 categories!!.add(newCategoryTitle)
                 newCategoryTitle = ""
-                viewModel.onEvent(CreateReminderEvents.InsertCategory(categories = categories!!))
+                viewModel.onEvent(CreateReminderEvents.InsertCategory(categories = categories))
             },
             onCancelClick = {
                 viewModel.onEvent(CreateReminderEvents.DismissCreateCategoryAlert)
@@ -228,7 +223,9 @@ fun CreateReminderScreen(
                 isPinned = isPinned,
                 repeat = repeat,
                 selectedCategories = selectedCategories,
-                calendar = calendar
+                calendar = calendar,
+                context = context,
+                remindersListSize = reminders.size
             )
         }
     ) { innerPadding ->
@@ -333,9 +330,9 @@ fun CreateReminderScreen(
                 selectedCategories = selectedCategories,
                 onCategoryClick = { index, isSelected ->
                     if (isSelected)
-                        selectedCategories.remove(categories!![index])
+                        selectedCategories.remove(categories[index])
                     else
-                        selectedCategories.add(categories!![index])
+                        selectedCategories.add(categories[index])
                 },
                 onCreateCategoryClick = {
                     viewModel.onEvent(
@@ -347,6 +344,10 @@ fun CreateReminderScreen(
     }
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
+@ExperimentalFoundationApi
 @Composable
 private fun BottomBar(
     onPopBackStack: (UiEvent.PopBackStack) -> Unit,
@@ -358,6 +359,8 @@ private fun BottomBar(
     repeat: ReminderRepeatTypes,
     selectedCategories: List<String>,
     calendar: Calendar,
+    context: Context,
+    remindersListSize: Int,
 ) {
     BottomAppBar(
         backgroundColor = MaterialTheme.colors.background
@@ -377,18 +380,53 @@ private fun BottomBar(
 
         TextButton(
             onClick = {
+                val alarmManager =
+                    context.getSystemService(ComponentActivity.ALARM_SERVICE) as AlarmManager
+
+                val intent = Intent(context, AlarmReceiver::class.java)
+                intent.putExtra("title", title)
+                intent.putExtra("description", description)
+                intent.putExtra("id", remindersListSize + 1)
+
+                val pendingIntent =
+                    PendingIntent.getBroadcast(context, remindersListSize + 1, intent, 0)
+
+                val interval = when (repeat) {
+                    ReminderRepeatTypes.ONCE -> 1
+                    ReminderRepeatTypes.DAILY -> AlarmManager.INTERVAL_DAY
+                    ReminderRepeatTypes.WEEKLY -> AlarmManager.INTERVAL_DAY * 7
+                    ReminderRepeatTypes.MONTHLY -> AlarmManager.INTERVAL_DAY * 31
+                    ReminderRepeatTypes.YEARLY -> AlarmManager.INTERVAL_DAY * 365
+                    else -> null
+                }
+
+                interval?.let {
+                    if (it.toInt() != 1)
+                        alarmManager.setRepeating(
+                            AlarmManager.RTC_WAKEUP, calendar.timeInMillis,
+                            it, pendingIntent
+                        )
+                    else alarmManager.set(AlarmManager.RTC_WAKEUP,
+                        calendar.timeInMillis,
+                        pendingIntent)
+                }
+
+                Toast.makeText(context, "Reminder successfully added.", Toast.LENGTH_SHORT).show()
+
+                val reminder = Reminder(
+                    title = title,
+                    description = description,
+                    color = color,
+                    isPinned = isPinned,
+                    repeat = repeat,
+                    categories = selectedCategories,
+                    isDone = false,
+                    date = calendar
+                )
+
                 onEvent(
                     CreateReminderEvents.OnCreateReminderClick(
-                        reminder = Reminder(
-                            title = title,
-                            description = description,
-                            color = color,
-                            isPinned = isPinned,
-                            repeat = repeat,
-                            categories = selectedCategories,
-                            isDone = false,
-                            date = calendar
-                        )
+                        reminder = reminder
                     )
                 )
             },
