@@ -41,7 +41,6 @@ fun SettingsScreen(
     onPopBackStack: (UiEvent) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-
     var themeIsExpanded by remember {
         mutableStateOf(false)
     }
@@ -60,6 +59,9 @@ fun SettingsScreen(
                 is UiEvent.PopBackStack -> {
                     onPopBackStack(event)
                 }
+                is UiEvent.AlertDialog -> {
+                    showFeedbackAlertDialog = event.isOpen
+                }
                 else -> Unit
             }
         }
@@ -67,7 +69,7 @@ fun SettingsScreen(
 
     if (showFeedbackAlertDialog)
         Feedback(
-            onDismissRequest = { showFeedbackAlertDialog = false }
+            onEvent = viewModel::onEvent
         )
 
     Scaffold(
@@ -178,7 +180,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Card(
-                onClick = { showFeedbackAlertDialog = true }
+                onClick = { viewModel.onEvent(SettingsEvents.ToggleFeedbackAlert(isOpen = true)) }
             ) {
                 ListItem(
                     text = { Text(text = "Feedback") },
@@ -202,7 +204,7 @@ fun SettingsScreen(
                     icon = {
                         Icon(
                             Icons.Outlined.Policy,
-                            contentDescription = "Feedback",
+                            contentDescription = "Privacy policy",
                             tint = MaterialTheme.colors.primary
                         )
                     }
@@ -215,7 +217,7 @@ fun SettingsScreen(
 @ExperimentalComposeUiApi
 @Composable
 private fun Feedback(
-    onDismissRequest: () -> Unit,
+    onEvent: (SettingsEvents) -> Unit,
 ) {
     val composition by rememberLottieComposition(
         spec = LottieCompositionSpec.Asset("animations/feedback.json")
@@ -231,7 +233,7 @@ private fun Feedback(
     }
 
     AlertDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = { onEvent(SettingsEvents.ToggleFeedbackAlert(isOpen = false)) },
         properties = DialogProperties(
             usePlatformDefaultWidth = false
         ),
@@ -265,14 +267,16 @@ private fun Feedback(
 
                 Row {
                     TextButton(
-                        onClick = onDismissRequest,
+                        onClick = {
+                            onEvent(SettingsEvents.ToggleFeedbackAlert(isOpen = false))
+                        },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "Cancel", color = Red900)
                     }
 
                     TextButton(
-                        onClick = { /*TODO*/ },
+                        onClick = { onEvent(SettingsEvents.SendFeedback(text = feedbackTextValue)) },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "Save", color = MaterialTheme.colors.primary)
