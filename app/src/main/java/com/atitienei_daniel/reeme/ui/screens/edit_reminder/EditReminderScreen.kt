@@ -1,14 +1,11 @@
 package com.atitienei_daniel.reeme.ui.screens.edit_reminder
 
-import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -16,29 +13,21 @@ import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.Save
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.atitienei_daniel.reeme.ui.screens.edit_reminder.components.Tooltip
 import com.atitienei_daniel.reeme.ui.theme.Red900
-import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
 import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.components.*
 import com.atitienei_daniel.reeme.ui.utils.dateToString
 import kotlinx.coroutines.flow.collect
+import java.util.*
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
@@ -102,18 +91,6 @@ fun EditReminderScreen(
         mutableStateOf("")
     }
 
-    var year by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-    var month by remember {
-        mutableStateOf<Int?>(null)
-    }
-
-    var dayOfMonth by remember {
-        mutableStateOf<Int?>(null)
-    }
-
     viewModel.color?.let {
         selectedColorIndex = colors.indexOf(viewModel.color)
     }
@@ -121,10 +98,10 @@ fun EditReminderScreen(
     if (showDatePicker)
         ShowDatePicker(
             context = context,
-            onDatePicked = { _, yearValue, monthValue, day ->
-                year = yearValue
-                month = monthValue
-                dayOfMonth = day
+            onDatePicked = { _, year, month, dayOfMonth ->
+                viewModel.date[Calendar.YEAR] = year
+                viewModel.date[Calendar.MONTH] = month
+                viewModel.date[Calendar.DAY_OF_MONTH] = dayOfMonth
 
                 viewModel.onEvent(EditReminderEvents.DismissDatePicker)
                 viewModel.onEvent(EditReminderEvents.OpenTimePicker)
@@ -137,14 +114,9 @@ fun EditReminderScreen(
     if (showTimePicker)
         ShowTimePicker(
             context = context,
-            onTimePicked = { _, hours, minutes ->
-                viewModel.date.set(
-                    year!!,
-                    month!!,
-                    dayOfMonth!!,
-                    hours,
-                    minutes
-                )
+            onTimePicked = { _, hour, minutes ->
+                viewModel.date[Calendar.HOUR_OF_DAY] = hour
+                viewModel.date[Calendar.MINUTE] = minutes
 
                 viewModel.onEvent(EditReminderEvents.DismissTimePicker)
             },
@@ -293,38 +265,15 @@ private fun BottomAppBar(
     onEvent: (EditReminderEvents) -> Unit,
     isDone: Boolean,
 ) {
-    val state = remember {
-        mutableStateOf(true)
-    }
-
-    var howManyTimesDeleteButtonWasClicked by remember {
-        mutableStateOf(0)
-    }
-
     BottomAppBar(
         backgroundColor = MaterialTheme.colors.background
     ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .wrapContentWidth(align = Alignment.CenterHorizontally)
-        ) {
-            if (howManyTimesDeleteButtonWasClicked == 1)
-                Tooltip(expanded = state) {
-                    Text(text = "Press one more time to delete")
-                }
-            DeleteButton(
-                onClick = {
-                    if (howManyTimesDeleteButtonWasClicked >= 2)
-                        onEvent(EditReminderEvents.OnDeleteClick)
-                    else howManyTimesDeleteButtonWasClicked++
-
-                    Log.d("delete_button", howManyTimesDeleteButtonWasClicked.toString())
-                },
-                modifier = Modifier
-            )
-
-        }
+        DeleteButton(
+            onClick = {
+                onEvent(EditReminderEvents.OnDeleteClick)
+            },
+            modifier = Modifier.weight(1f)
+        )
 
         SaveButton(
             onClick = { onEvent(EditReminderEvents.OnSaveClick) },
