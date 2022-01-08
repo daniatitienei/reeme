@@ -3,6 +3,7 @@ package com.atitienei_daniel.reeme.data.receiver
 import android.app.Notification
 import android.app.Notification.EXTRA_NOTIFICATION_ID
 import android.app.PendingIntent
+import android.app.TaskStackBuilder
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,6 +16,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.net.toUri
 import androidx.navigation.NavDeepLinkBuilder
 import com.atitienei_daniel.reeme.MainActivity
 import com.atitienei_daniel.reeme.R
@@ -35,8 +37,17 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val notificationSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val i = Intent(context, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(context, id, i, 0)
+        val reminderDetailIntent = Intent(
+            Intent.ACTION_VIEW,
+            "https://example.com/reminderId=$id".toUri(),
+            context,
+            MainActivity::class.java
+        )
+
+        val pending: PendingIntent = TaskStackBuilder.create(context).run {
+            addNextIntentWithParentStack(reminderDetailIntent)
+            getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT)
+        }
 
         val notification = NotificationCompat.Builder(context!!, "reminder")
             .setSmallIcon(R.drawable.ic_notifications_active)
@@ -45,7 +56,7 @@ class AlarmReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .setSound(notificationSound)
             .setDefaults(Notification.DEFAULT_ALL)
-            .setContentIntent(pendingIntent)
+            .setContentIntent(pending)
 
         val notificationManager = NotificationManagerCompat.from(context)
 

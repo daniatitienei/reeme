@@ -5,7 +5,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
@@ -380,38 +379,15 @@ private fun BottomBar(
 
         TextButton(
             onClick = {
-                val alarmManager =
-                    context.getSystemService(ComponentActivity.ALARM_SERVICE) as AlarmManager
+                setAlarm(
+                    context = context,
+                    title = title,
+                    description = description,
+                    remindersListSize = remindersListSize,
+                    repeat = repeat,
+                    calendar = calendar
+                )
 
-                val intent = Intent(context, AlarmReceiver::class.java)
-                intent.putExtra("title", title)
-                intent.putExtra("description", description)
-                intent.putExtra("id", remindersListSize + 1)
-
-                val pendingIntent =
-                    PendingIntent.getBroadcast(context, remindersListSize + 1, intent, 0)
-
-                val interval = when (repeat) {
-                    ReminderRepeatTypes.ONCE -> 1
-                    ReminderRepeatTypes.DAILY -> AlarmManager.INTERVAL_DAY
-                    ReminderRepeatTypes.WEEKLY -> AlarmManager.INTERVAL_DAY * 7
-                    ReminderRepeatTypes.MONTHLY -> AlarmManager.INTERVAL_DAY * 31
-                    ReminderRepeatTypes.YEARLY -> AlarmManager.INTERVAL_DAY * 365
-                    else -> null
-                }
-
-                interval?.let {
-                    if (it.toInt() != 1)
-                        alarmManager.setRepeating(
-                            AlarmManager.RTC_WAKEUP, calendar.timeInMillis,
-                            it, pendingIntent
-                        )
-                    else alarmManager.set(AlarmManager.RTC_WAKEUP,
-                        calendar.timeInMillis,
-                        pendingIntent)
-                }
-
-                Toast.makeText(context, "Reminder successfully added.", Toast.LENGTH_SHORT).show()
 
                 val reminder = Reminder(
                     title = title,
@@ -423,6 +399,8 @@ private fun BottomBar(
                     isDone = false,
                     date = calendar
                 )
+
+                Toast.makeText(context, "Reminder successfully added.", Toast.LENGTH_SHORT).show()
 
                 onEvent(
                     CreateReminderEvents.OnCreateReminderClick(
@@ -443,6 +421,52 @@ private fun BottomBar(
     }
 }
 
+@ExperimentalMaterialApi
+@ExperimentalFoundationApi
+@ExperimentalComposeUiApi
+@ExperimentalAnimationApi
+private fun setAlarm(
+    context: Context,
+    title: String,
+    description: String,
+    remindersListSize: Int,
+    repeat: ReminderRepeatTypes,
+    calendar: Calendar,
+) {
+    val alarmManager =
+        context.getSystemService(ComponentActivity.ALARM_SERVICE) as AlarmManager
+
+    val intent = Intent(context, AlarmReceiver::class.java)
+    intent.putExtra("title", title)
+    intent.putExtra("description", description)
+    intent.putExtra("id", remindersListSize + 1)
+
+    val pendingIntent =
+        PendingIntent.getBroadcast(context, remindersListSize + 1, intent, 0)
+
+    val interval = when (repeat) {
+        ReminderRepeatTypes.ONCE -> AlarmManager.INTERVAL_DAY * 0
+        ReminderRepeatTypes.DAILY -> AlarmManager.INTERVAL_DAY
+        ReminderRepeatTypes.WEEKLY -> AlarmManager.INTERVAL_DAY * 7
+        ReminderRepeatTypes.MONTHLY -> AlarmManager.INTERVAL_DAY * 31
+        ReminderRepeatTypes.YEARLY -> AlarmManager.INTERVAL_DAY * 365
+        else -> null
+    }
+
+    interval?.let {
+        if (repeat != ReminderRepeatTypes.ONCE)
+            alarmManager.setRepeating(
+                AlarmManager.RTC_WAKEUP, calendar.timeInMillis,
+                it, pendingIntent
+            )
+        else alarmManager.set(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            pendingIntent
+        )
+    }
+}
+
 @Composable
 fun OutlinedPicker(
     value: String,
@@ -450,7 +474,6 @@ fun OutlinedPicker(
     trailingIcon: ImageVector,
     onClick: () -> Unit,
 ) {
-
     OutlinedTextField(
         value = value,
         onValueChange = { },

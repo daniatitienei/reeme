@@ -74,7 +74,7 @@ class EditReminderViewModel @Inject constructor(
         }
     }
 
-    fun getCategories(): Flow<MutableList<String>?> = storeCategoriesRepositoryImpl.getCategories
+    val categories = storeCategoriesRepositoryImpl.getCategories
 
     private fun insertCategory(categories: MutableList<String>) {
         viewModelScope.launch {
