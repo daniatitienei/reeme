@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.navigation.navDeepLink
 import com.atitienei_daniel.reeme.domain.model.Reminder
 import com.atitienei_daniel.reeme.domain.repository.StoreThemeRepository
 import com.atitienei_daniel.reeme.ui.screens.create_reminder.CreateReminderScreen
@@ -44,6 +45,7 @@ fun Navigation(
 
     val navController = rememberAnimatedNavController()
     val systemUiController = rememberSystemUiController()
+    val uri = "https://example.com"
 
     SideEffect {
         systemUiController.setSystemBarsColor(
@@ -105,6 +107,9 @@ fun Navigation(
 
             composable(
                 route = Routes.EDIT_REMINDER,
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "$uri/reminderId={reminderId}" }
+                ),
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },

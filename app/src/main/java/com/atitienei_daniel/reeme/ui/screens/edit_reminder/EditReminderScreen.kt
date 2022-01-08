@@ -1,5 +1,11 @@
 package com.atitienei_daniel.reeme.ui.screens.edit_reminder
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
@@ -15,20 +21,24 @@ import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.atitienei_daniel.reeme.data.receiver.AlarmReceiver
 import com.atitienei_daniel.reeme.ui.theme.Red900
 import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.components.*
 import com.atitienei_daniel.reeme.ui.utils.dateToString
+import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import kotlinx.coroutines.flow.collect
 import java.util.*
 
+@ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -81,7 +91,7 @@ fun EditReminderScreen(
 
     val colors = Constants.colors
 
-    val categories by viewModel.getCategories().collectAsState(initial = mutableListOf())
+    val categories by viewModel.categories.collectAsState(initial = mutableListOf())
 
     var selectedColorIndex by remember {
         mutableStateOf(colors.indexOf(viewModel.color))
@@ -161,7 +171,8 @@ fun EditReminderScreen(
         bottomBar = {
             BottomAppBar(
                 onEvent = { event -> viewModel.onEvent(event = event) },
-                isDone = viewModel.isDone
+                isDone = viewModel.isDone,
+                viewModel = viewModel,
             )
         }
     ) { innerPadding ->
@@ -259,24 +270,54 @@ fun EditReminderScreen(
     }
 }
 
+@ExperimentalAnimationApi
+@ExperimentalComposeUiApi
+@ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
 private fun BottomAppBar(
     onEvent: (EditReminderEvents) -> Unit,
     isDone: Boolean,
+    viewModel: EditReminderViewModel,
 ) {
+    val context = LocalContext.current
+
+    val alarmManager =
+        context.getSystemService(ComponentActivity.ALARM_SERVICE) as AlarmManager
+
+    val intent = Intent(context, AlarmReceiver::class.java)
+
     BottomAppBar(
         backgroundColor = MaterialTheme.colors.background
     ) {
         DeleteButton(
             onClick = {
+                val pendingIntent =
+                    PendingIntent.getBroadcast(context, viewModel.reminderId.toInt(), intent, 0)
+
+                alarmManager.cancel(pendingIntent)
                 onEvent(EditReminderEvents.OnDeleteClick)
             },
             modifier = Modifier.weight(1f)
         )
 
         SaveButton(
-            onClick = { onEvent(EditReminderEvents.OnSaveClick) },
+            onClick = {
+                editAlarm(
+                    alarmManager = alarmManager,
+                    intent = intent,
+                    context = context,
+                    title = viewModel.title,
+                    description = viewModel.description ?: "",
+                    repeat = viewModel.repeat,
+                    calendar = viewModel.date,
+                    id = viewModel.reminderId.toInt()
+                )
+
+                Toast.makeText(context, "Reminder successfully edited.", Toast.LENGTH_SHORT).show()
+
+                onEvent(EditReminderEvents.OnSaveClick)
+            },
             modifier = Modifier.weight(1f)
         )
 
@@ -284,6 +325,50 @@ private fun BottomAppBar(
             onClick = { onEvent(EditReminderEvents.OnDoneClick) },
             modifier = Modifier.weight(1f),
             isDone = isDone
+        )
+    }
+}
+
+@ExperimentalMaterialApi
+@ExperimentalFoundationApi
+@ExperimentalComposeUiApi
+@ExperimentalAnimationApi
+private fun editAlarm(
+    alarmManager: AlarmManager,
+    intent: Intent,
+    context: Context,
+    title: String,
+    description: String,
+    id: Int,
+    repeat: ReminderRepeatTypes,
+    calendar: Calendar,
+) {
+    intent.putExtra("title", title)
+    intent.putExtra("description", description)
+    intent.putExtra("id", id)
+
+    val pendingIntent =
+        PendingIntent.getBroadcast(context, id, intent, 0)
+
+    val interval = when (repeat) {
+        ReminderRepeatTypes.ONCE -> AlarmManager.INTERVAL_DAY * 0
+        ReminderRepeatTypes.DAILY -> AlarmManager.INTERVAL_DAY
+        ReminderRepeatTypes.WEEKLY -> AlarmManager.INTERVAL_DAY * 7
+        ReminderRepeatTypes.MONTHLY -> AlarmManager.INTERVAL_DAY * 31
+        ReminderRepeatTypes.YEARLY -> AlarmManager.INTERVAL_DAY * 365
+        else -> null
+    }
+
+    interval?.let {
+        if (repeat != ReminderRepeatTypes.ONCE)
+            alarmManager.setRepeating(
+                AlarmManager.RTC_WAKEUP, calendar.timeInMillis,
+                it, pendingIntent
+            )
+        else alarmManager.set(
+            AlarmManager.RTC_WAKEUP,
+            calendar.timeInMillis,
+            pendingIntent
         )
     }
 }
