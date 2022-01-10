@@ -1,12 +1,10 @@
 package com.atitienei_daniel.reeme.ui.screens.edit_reminder
 
-import android.util.Log
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.atitienei_daniel.reeme.data.repository.datastore.StoreCategoriesRepositoryImpl
 import com.atitienei_daniel.reeme.data.reminders_db.RemindersDataSource
 import com.atitienei_daniel.reeme.domain.repository.StoreCategoriesRepository
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
@@ -40,7 +38,7 @@ class EditReminderViewModel @Inject constructor(
 
     var isDone by mutableStateOf(false)
 
-    var date by mutableStateOf<Calendar>(Calendar.getInstance())
+    var calendar by mutableStateOf<Calendar>(Calendar.getInstance())
 
     var repeat by mutableStateOf(ReminderRepeatTypes.UNSELECTED)
 
@@ -68,7 +66,7 @@ class EditReminderViewModel @Inject constructor(
                 reminder.categories!!.forEach { category ->
                     selectedCategories.add(category)
                 }
-                date.time = reminder.date
+                calendar.time = reminder.date
                 repeat = reminder.repeat
             }
         }
@@ -128,7 +126,7 @@ class EditReminderViewModel @Inject constructor(
                             isDone = isDone,
                             isPinned = isPinned,
                             repeat = repeat,
-                            date = date.time,
+                            date = calendar.time,
                             color = color!!,
                             description = description,
                             categories = selectedCategories,
@@ -145,7 +143,7 @@ class EditReminderViewModel @Inject constructor(
                             isDone = isDone,
                             isPinned = isPinned,
                             repeat = repeat,
-                            date = date.time,
+                            date = calendar.time,
                             color = color!!,
                             description = description,
                             categories = selectedCategories,

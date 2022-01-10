@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.Crossfade
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.RemoveDone
@@ -33,7 +35,7 @@ import com.atitienei_daniel.reeme.ui.theme.Red900
 import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.components.*
-import com.atitienei_daniel.reeme.ui.utils.dateToString
+import com.atitienei_daniel.reeme.ui.utils.converters.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import kotlinx.coroutines.flow.collect
 import java.util.*
@@ -109,9 +111,9 @@ fun EditReminderScreen(
         ShowDatePicker(
             context = context,
             onDatePicked = { _, year, month, dayOfMonth ->
-                viewModel.date[Calendar.YEAR] = year
-                viewModel.date[Calendar.MONTH] = month
-                viewModel.date[Calendar.DAY_OF_MONTH] = dayOfMonth
+                viewModel.calendar[Calendar.YEAR] = year
+                viewModel.calendar[Calendar.MONTH] = month
+                viewModel.calendar[Calendar.DAY_OF_MONTH] = dayOfMonth
 
                 viewModel.onEvent(EditReminderEvents.DismissDatePicker)
                 viewModel.onEvent(EditReminderEvents.OpenTimePicker)
@@ -125,8 +127,10 @@ fun EditReminderScreen(
         ShowTimePicker(
             context = context,
             onTimePicked = { _, hour, minutes ->
-                viewModel.date[Calendar.HOUR_OF_DAY] = hour
-                viewModel.date[Calendar.MINUTE] = minutes
+                viewModel.calendar[Calendar.HOUR_OF_DAY] = hour
+                viewModel.calendar[Calendar.MINUTE] = minutes
+                viewModel.calendar[Calendar.MILLISECOND] = 0
+                viewModel.calendar[Calendar.SECOND] = 0
 
                 viewModel.onEvent(EditReminderEvents.DismissTimePicker)
             },
@@ -231,8 +235,8 @@ fun EditReminderScreen(
 
                 OutlinedPicker(
                     value = "On " +
-                            "${viewModel.date.time.dateToString("dd/MM/yyyy")}," +
-                            " at ${viewModel.date.time.dateToString("HH:mm a")}",
+                            "${viewModel.calendar.time.dateToString("dd/MM/yyyy")}," +
+                            " at ${viewModel.calendar.time.dateToString("HH:mm a")}",
                     placeholder = "Select date and time",
                     trailingIcon = Icons.Rounded.DateRange,
                     onClick = { viewModel.onEvent(EditReminderEvents.OpenDatePicker) }
@@ -249,6 +253,27 @@ fun EditReminderScreen(
                         viewModel.onEvent(EditReminderEvents.ToggleDropdown(isDropdownOpen))
                     }
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Crossfade(targetState = viewModel.repeat) {
+                    if (it == ReminderRepeatTypes.UNSELECTED) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                Icons.Outlined.NotificationsOff,
+                                contentDescription = null,
+                                tint = MaterialTheme.colors.primary
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "You won't be notified.",
+                                style = MaterialTheme.typography.body2
+                            )
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -310,7 +335,7 @@ private fun BottomAppBar(
                     title = viewModel.title,
                     description = viewModel.description ?: "",
                     repeat = viewModel.repeat,
-                    calendar = viewModel.date,
+                    calendar = viewModel.calendar,
                     id = viewModel.reminderId.toInt()
                 )
 
@@ -351,11 +376,11 @@ private fun editAlarm(
         PendingIntent.getBroadcast(context, id, intent, 0)
 
     val interval = when (repeat) {
-        ReminderRepeatTypes.ONCE -> AlarmManager.INTERVAL_DAY * 0
-        ReminderRepeatTypes.DAILY -> AlarmManager.INTERVAL_DAY
-        ReminderRepeatTypes.WEEKLY -> AlarmManager.INTERVAL_DAY * 7
-        ReminderRepeatTypes.MONTHLY -> AlarmManager.INTERVAL_DAY * 31
-        ReminderRepeatTypes.YEARLY -> AlarmManager.INTERVAL_DAY * 365
+        ReminderRepeatTypes.ONCE -> 0
+        ReminderRepeatTypes.DAILY -> SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_DAY
+        ReminderRepeatTypes.WEEKLY -> SystemClock.elapsedRealtime() + (AlarmManager.INTERVAL_DAY * 7)
+        ReminderRepeatTypes.MONTHLY -> SystemClock.elapsedRealtime() + Constants.MONTH_IN_MILLISECONDS
+        ReminderRepeatTypes.YEARLY -> SystemClock.elapsedRealtime() + Constants.YEAR_IN_MILLISECONDS
         else -> null
     }
 

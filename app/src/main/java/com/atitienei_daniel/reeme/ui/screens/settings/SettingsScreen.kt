@@ -1,9 +1,13 @@
 package com.atitienei_daniel.reeme.ui.screens.settings
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -15,25 +19,24 @@ import androidx.compose.material.icons.outlined.SettingsSuggest
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.SettingsSuggest
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
-import com.atitienei_daniel.reeme.ui.utils.UiEvent
-import com.atitienei_daniel.reeme.ui.utils.enums.Theme
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.airbnb.lottie.compose.*
 import com.atitienei_daniel.reeme.ui.theme.Red900
+import com.atitienei_daniel.reeme.ui.utils.UiEvent
+import com.atitienei_daniel.reeme.ui.utils.enums.Theme
 import kotlinx.coroutines.flow.collect
 
+@ExperimentalAnimationApi
+@ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @Composable
@@ -41,7 +44,6 @@ fun SettingsScreen(
     onPopBackStack: (UiEvent) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-
     var themeIsExpanded by remember {
         mutableStateOf(false)
     }
@@ -54,11 +56,22 @@ fun SettingsScreen(
         mutableStateOf(false)
     }
 
+    val context = LocalContext.current
+    val privacyPolicyIntent = remember {
+        Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://github.com/daniatitienei/reeme-privacy-policy/blob/main/privacy-policy.md")
+        )
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is UiEvent.PopBackStack -> {
                     onPopBackStack(event)
+                }
+                is UiEvent.AlertDialog -> {
+                    showFeedbackAlertDialog = event.isOpen
                 }
                 else -> Unit
             }
@@ -67,7 +80,7 @@ fun SettingsScreen(
 
     if (showFeedbackAlertDialog)
         Feedback(
-            onDismissRequest = { showFeedbackAlertDialog = false }
+            onEvent = viewModel::onEvent
         )
 
     Scaffold(
@@ -178,7 +191,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Card(
-                onClick = { showFeedbackAlertDialog = true }
+                onClick = { viewModel.onEvent(SettingsEvents.ToggleFeedbackAlert(isOpen = true)) }
             ) {
                 ListItem(
                     text = { Text(text = "Feedback") },
@@ -195,14 +208,16 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(5.dp))
 
             Card(
-                onClick = { /*TODO*/ }
+                onClick = {
+                    context.startActivity(privacyPolicyIntent)
+                }
             ) {
                 ListItem(
                     text = { Text(text = "Privacy policy") },
                     icon = {
                         Icon(
                             Icons.Outlined.Policy,
-                            contentDescription = "Feedback",
+                            contentDescription = "Privacy policy",
                             tint = MaterialTheme.colors.primary
                         )
                     }
@@ -215,7 +230,7 @@ fun SettingsScreen(
 @ExperimentalComposeUiApi
 @Composable
 private fun Feedback(
-    onDismissRequest: () -> Unit,
+    onEvent: (SettingsEvents) -> Unit,
 ) {
     val composition by rememberLottieComposition(
         spec = LottieCompositionSpec.Asset("animations/feedback.json")
@@ -231,7 +246,7 @@ private fun Feedback(
     }
 
     AlertDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = { onEvent(SettingsEvents.ToggleFeedbackAlert(isOpen = false)) },
         properties = DialogProperties(
             usePlatformDefaultWidth = false
         ),
@@ -265,14 +280,16 @@ private fun Feedback(
 
                 Row {
                     TextButton(
-                        onClick = onDismissRequest,
+                        onClick = {
+                            onEvent(SettingsEvents.ToggleFeedbackAlert(isOpen = false))
+                        },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "Cancel", color = Red900)
                     }
 
                     TextButton(
-                        onClick = { /*TODO*/ },
+                        onClick = { onEvent(SettingsEvents.SendFeedback(text = feedbackTextValue)) },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(text = "Save", color = MaterialTheme.colors.primary)

@@ -9,6 +9,9 @@ import com.atitienei_daniel.reeme.data.reminders_db.RemindersDatabaseAdapters
 import com.atitienei_daniel.reeme.data.repository.datastore.StoreThemeRepositoryImpl
 import com.atitienei_daniel.reeme.domain.repository.StoreCategoriesRepository
 import com.atitienei_daniel.reeme.domain.repository.StoreThemeRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.squareup.sqldelight.android.AndroidSqliteDriver
@@ -37,6 +40,10 @@ object AppModule {
         context = app,
         name = "reminders.db"
     )
+
+    @Provides
+    @Singleton
+    fun provideFirestore(): FirebaseFirestore = Firebase.firestore
 
     @Provides
     @Singleton

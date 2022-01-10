@@ -53,6 +53,14 @@ android {
 }
 
 dependencies {
+    /* Ads */
+    implementation 'com.google.android.gms:play-services-ads:20.5.0'
+
+    /* Firebase */
+    implementation platform('com.google.firebase:firebase-bom:29.0.0')
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation 'com.google.firebase:firebase-analytics'
+
     /* Lottie */
     def lottieVersion = "4.2.2"
     implementation "com.airbnb.android:lottie-compose:$lottieVersion"
