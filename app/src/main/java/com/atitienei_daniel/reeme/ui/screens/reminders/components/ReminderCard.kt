@@ -14,7 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.atitienei_daniel.reeme.ui.screens.reminders.RemindersListEvents
 import com.atitienei_daniel.reeme.ui.theme.DarkBlue800
-import com.atitienei_daniel.reeme.ui.utils.dateToString
+import com.atitienei_daniel.reeme.ui.utils.converters.dateToString
 import remindersdb.ReminderEntity
 
 @ExperimentalMaterialApi

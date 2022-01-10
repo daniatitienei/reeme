@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.Crossfade
@@ -33,7 +34,7 @@ import com.atitienei_daniel.reeme.ui.theme.Red900
 import com.atitienei_daniel.reeme.ui.utils.Constants
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.components.*
-import com.atitienei_daniel.reeme.ui.utils.dateToString
+import com.atitienei_daniel.reeme.ui.utils.converters.dateToString
 import com.atitienei_daniel.reeme.ui.utils.enums.ReminderRepeatTypes
 import kotlinx.coroutines.flow.collect
 import java.util.*
@@ -127,6 +128,8 @@ fun EditReminderScreen(
             onTimePicked = { _, hour, minutes ->
                 viewModel.date[Calendar.HOUR_OF_DAY] = hour
                 viewModel.date[Calendar.MINUTE] = minutes
+                viewModel.date[Calendar.MILLISECOND] = 0
+                viewModel.date[Calendar.SECOND] = 0
 
                 viewModel.onEvent(EditReminderEvents.DismissTimePicker)
             },
@@ -351,11 +354,11 @@ private fun editAlarm(
         PendingIntent.getBroadcast(context, id, intent, 0)
 
     val interval = when (repeat) {
-        ReminderRepeatTypes.ONCE -> AlarmManager.INTERVAL_DAY * 0
-        ReminderRepeatTypes.DAILY -> AlarmManager.INTERVAL_DAY
-        ReminderRepeatTypes.WEEKLY -> AlarmManager.INTERVAL_DAY * 7
-        ReminderRepeatTypes.MONTHLY -> AlarmManager.INTERVAL_DAY * 31
-        ReminderRepeatTypes.YEARLY -> AlarmManager.INTERVAL_DAY * 365
+        ReminderRepeatTypes.ONCE -> 0
+        ReminderRepeatTypes.DAILY -> SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_DAY
+        ReminderRepeatTypes.WEEKLY -> SystemClock.elapsedRealtime() + (AlarmManager.INTERVAL_DAY * 7)
+        ReminderRepeatTypes.MONTHLY -> SystemClock.elapsedRealtime() + Constants.MONTH_IN_MILLISECONDS
+        ReminderRepeatTypes.YEARLY -> SystemClock.elapsedRealtime() + Constants.YEAR_IN_MILLISECONDS
         else -> null
     }
 

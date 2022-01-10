@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Reeme</string>
+    <string name="admob_id">ca-app-pub-9050800436916128~5852268961</string>
+    <string name="interstitial_ad">ca-app-pub-9050800436916128/7987477717</string>
+    <string name="demo_interstitial_ad">ca-app-pub-3940256099942544/1033173712</string>
 </resources>

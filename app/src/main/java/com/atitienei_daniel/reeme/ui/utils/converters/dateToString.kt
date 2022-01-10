@@ -1,5 +1,4 @@
-
-package com.atitienei_daniel.reeme.ui.utils
+package com.atitienei_daniel.reeme.ui.utils.converters
 
 import java.text.SimpleDateFormat
 import java.util.*

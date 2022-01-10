@@ -1,9 +1,12 @@
 package com.atitienei_daniel.reeme.ui.screens.settings
 
+import android.util.Log
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -15,25 +18,29 @@ import androidx.compose.material.icons.outlined.SettingsSuggest
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.SettingsSuggest
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.atitienei_daniel.reeme.ui.theme.ReemeTheme
+import com.airbnb.lottie.compose.*
+import com.atitienei_daniel.reeme.MainActivity
+import com.atitienei_daniel.reeme.ui.theme.Red900
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.enums.Theme
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.airbnb.lottie.compose.*
-import com.atitienei_daniel.reeme.ui.theme.Red900
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import kotlinx.coroutines.flow.collect
 
+@ExperimentalAnimationApi
+@ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @Composable
@@ -52,6 +59,7 @@ fun SettingsScreen(
     var showFeedbackAlertDialog by remember {
         mutableStateOf(false)
     }
+
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
