@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
         val adRequest = AdRequest.Builder().build()
 
         InterstitialAd.load(this@MainActivity,
-            getString(R.string.demo_interstitial_ad),
+            getString(R.string.interstitial_ad),
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {

@@ -1,6 +1,7 @@
 package com.atitienei_daniel.reeme.ui.screens.settings
 
-import android.util.Log
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -29,14 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.airbnb.lottie.compose.*
-import com.atitienei_daniel.reeme.MainActivity
 import com.atitienei_daniel.reeme.ui.theme.Red900
 import com.atitienei_daniel.reeme.ui.utils.UiEvent
 import com.atitienei_daniel.reeme.ui.utils.enums.Theme
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import kotlinx.coroutines.flow.collect
 
 @ExperimentalAnimationApi
@@ -60,6 +56,13 @@ fun SettingsScreen(
         mutableStateOf(false)
     }
 
+    val context = LocalContext.current
+    val privacyPolicyIntent = remember {
+        Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://github.com/daniatitienei/reeme-privacy-policy/blob/main/privacy-policy.md")
+        )
+    }
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
@@ -205,7 +208,9 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(5.dp))
 
             Card(
-                onClick = { /*TODO*/ }
+                onClick = {
+                    context.startActivity(privacyPolicyIntent)
+                }
             ) {
                 ListItem(
                     text = { Text(text = "Privacy policy") },
