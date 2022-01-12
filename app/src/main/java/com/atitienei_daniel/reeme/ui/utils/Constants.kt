@@ -10,7 +10,6 @@ object Constants {
         Purple900,
         Orange900,
         Lime900,
-        Pink900
     )
 
     const val MONTH_IN_MILLISECONDS = 2629743830
