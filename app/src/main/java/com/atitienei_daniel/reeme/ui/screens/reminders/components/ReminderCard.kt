@@ -36,7 +36,7 @@ fun ReminderCard(
             Text(
                 text = reminder.title,
                 style = MaterialTheme.typography.h6,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Justify,
                 color = DarkBlue800,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -47,6 +47,7 @@ fun ReminderCard(
                 Text(
                     text = reminder.description,
                     style = MaterialTheme.typography.body2,
+                    textAlign = TextAlign.Justify,
                     color = DarkBlue800,
                 )
 

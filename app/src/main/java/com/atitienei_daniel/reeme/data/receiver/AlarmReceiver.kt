@@ -21,6 +21,7 @@ import androidx.navigation.NavDeepLinkBuilder
 import com.atitienei_daniel.reeme.MainActivity
 import com.atitienei_daniel.reeme.R
 import com.atitienei_daniel.reeme.ui.utils.Routes
+import kotlin.random.Random
 
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
@@ -33,9 +34,10 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val title = intent.getStringExtra("title")
         val description = intent.getStringExtra("description")
-        val id = intent.getIntExtra("id", 123)
+        val id = intent.getIntExtra("id", Random.nextInt())
 
-        val notificationSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val notificationSound: Uri =
+            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
         val reminderDetailIntent = Intent(
             Intent.ACTION_VIEW,

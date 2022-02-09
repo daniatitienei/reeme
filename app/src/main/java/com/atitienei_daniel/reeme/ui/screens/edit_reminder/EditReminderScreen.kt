@@ -377,10 +377,10 @@ private fun editAlarm(
 
     val interval = when (repeat) {
         ReminderRepeatTypes.ONCE -> 0
-        ReminderRepeatTypes.DAILY -> SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_DAY
-        ReminderRepeatTypes.WEEKLY -> SystemClock.elapsedRealtime() + (AlarmManager.INTERVAL_DAY * 7)
-        ReminderRepeatTypes.MONTHLY -> SystemClock.elapsedRealtime() + Constants.MONTH_IN_MILLISECONDS
-        ReminderRepeatTypes.YEARLY -> SystemClock.elapsedRealtime() + Constants.YEAR_IN_MILLISECONDS
+        ReminderRepeatTypes.DAILY -> AlarmManager.INTERVAL_DAY
+        ReminderRepeatTypes.WEEKLY -> AlarmManager.INTERVAL_DAY * 7
+        ReminderRepeatTypes.MONTHLY -> Constants.MONTH_IN_MILLISECONDS
+        ReminderRepeatTypes.YEARLY -> Constants.YEAR_IN_MILLISECONDS
         else -> null
     }
 
